@@ -5,13 +5,31 @@ import (
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/binary"
+	"encoding/hex"
 	"errors"
 	"math/rand"
 
 	"github.com/ishbir/elliptic"
 )
 
-func EncryptPython(key *elliptic.PrivateKey, data []byte, pubkey *elliptic.PublicKey) ([]byte, error) {
+type PrivateKey *elliptic.PrivateKey
+type PublicKey *elliptic.PublicKey
+
+func GetPubKeyHex(privateKey PrivateKey) string {
+	privKey := (*elliptic.PrivateKey)(privateKey)
+	return hex.EncodeToString(privKey.PublicKey.X) + hex.EncodeToString(privKey.PublicKey.Y)
+}
+
+func GeneratePrivateKey() (PrivateKey, error) {
+	return elliptic.GeneratePrivateKey(elliptic.Secp256k1)
+}
+
+func PublicKeyFromBytes(b []byte) (PublicKey, error) {
+	return elliptic.PublicKeyFromUncompressedBytes(elliptic.Secp256k1, b)
+}
+
+func EncryptPython(privateKey PrivateKey, data []byte, pubkey *elliptic.PublicKey) ([]byte, error) {
+	key := (*elliptic.PrivateKey)(privateKey)
 	ecdhKey, err := key.GetRawECDHKey(pubkey, 32)
 	if err != nil {
 		return nil, errors.New("failed to get ECDH key: " + err.Error())
@@ -60,7 +78,8 @@ func EncryptPython(key *elliptic.PrivateKey, data []byte, pubkey *elliptic.Publi
 	return b.Bytes(), nil
 }
 
-func DecryptPython(key *elliptic.PrivateKey, raw []byte) ([]byte, error) {
+func DecryptPython(privateKey PrivateKey, raw []byte) ([]byte, error) {
+	key := (*elliptic.PrivateKey)(privateKey)
 	cipher, err := elliptic.GetCipherByName("aes-128-ctr")
 	if err != nil {
 		return nil, errors.New("failed to get cipher: " + err.Error())

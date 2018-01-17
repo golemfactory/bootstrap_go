@@ -6,10 +6,10 @@ import (
 	"math/rand"
 	"net"
 
+	"github.com/golemfactory/bootstrap_go/crypto"
 	"github.com/golemfactory/bootstrap_go/message"
 	"github.com/golemfactory/bootstrap_go/peerkeeper"
 	"github.com/golemfactory/bootstrap_go/python"
-	"github.com/ishbir/elliptic"
 )
 
 type Config struct {
@@ -28,12 +28,12 @@ type Config struct {
 
 type Service struct {
 	config     *Config
-	privKey    *elliptic.PrivateKey
+	privKey    crypto.PrivateKey
 	pubKeyHex  string
 	peerKeeper peerkeeper.PeerKeeper
 }
 
-func NewService(config *Config, privKey *elliptic.PrivateKey, pk peerkeeper.PeerKeeper) *Service {
+func NewService(config *Config, privKey crypto.PrivateKey, pk peerkeeper.PeerKeeper) *Service {
 	pubKeyHex := hex.EncodeToString(privKey.PublicKey.X) + hex.EncodeToString(privKey.PublicKey.Y)
 	return &Service{
 		config:     config,

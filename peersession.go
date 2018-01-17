@@ -10,14 +10,13 @@ import (
 	"github.com/golemfactory/bootstrap_go/crypto"
 	"github.com/golemfactory/bootstrap_go/message"
 	"github.com/golemfactory/bootstrap_go/peerkeeper"
-	"github.com/ishbir/elliptic"
 	"golang.org/x/crypto/sha3"
 )
 
 type PeerSession struct {
 	service *Service
 	conn    net.Conn
-	pubKey  *elliptic.PublicKey
+	pubKey  crypto.PublicKey
 	peer    peerkeeper.Peer
 	id      string
 }
@@ -73,9 +72,7 @@ func (session *PeerSession) performHandshake() error {
 	if err != nil {
 		return fmt.Errorf("couldn't decode remote public key: %v", err)
 	}
-	session.pubKey, err = elliptic.PublicKeyFromUncompressedBytes(
-		elliptic.Secp256k1,
-		append([]byte{0x04}, pubKeyBytes...))
+	session.pubKey, err = crypto.PublicKeyFromBytes(append([]byte{0x04}, pubKeyBytes...))
 	if err != nil {
 		return fmt.Errorf("couldn't create remote public key: %v", err)
 	}

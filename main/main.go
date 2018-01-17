@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/hex"
 	"flag"
 	"fmt"
 	"math/rand"
@@ -9,10 +8,10 @@ import (
 	"time"
 
 	"github.com/golemfactory/bootstrap_go"
+	"github.com/golemfactory/bootstrap_go/crypto"
 	"github.com/golemfactory/bootstrap_go/peerkeeper"
 
 	"github.com/ccding/go-stun/stun"
-	"github.com/ishbir/elliptic"
 )
 
 const (
@@ -61,12 +60,12 @@ func main() {
 	}
 
 	rand.Seed(time.Now().UTC().UnixNano())
-	privKey, err := elliptic.GeneratePrivateKey(elliptic.Secp256k1)
+	privKey, err := crypto.GeneratePrivateKey()
 	if err != nil {
 		fmt.Println("Error while generating private key", err)
 		return
 	}
-	pubKeyHex := hex.EncodeToString(privKey.PublicKey.X) + hex.EncodeToString(privKey.PublicKey.Y)
+	pubKeyHex := crypto.GetPubKeyHex(privKey)
 
 	config := &bootstrap.Config{
 		Name:                 name,

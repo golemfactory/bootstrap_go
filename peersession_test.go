@@ -12,7 +12,6 @@ import (
 	"github.com/golemfactory/bootstrap_go/message"
 	"github.com/golemfactory/bootstrap_go/peerkeeper"
 	"github.com/golemfactory/bootstrap_go/python"
-	"github.com/ishbir/elliptic"
 )
 
 const (
@@ -70,7 +69,7 @@ func (pk *TestPeerKeeper) GetPeers(id string) []peerkeeper.Peer {
 }
 
 func getService(t *testing.T, pk peerkeeper.PeerKeeper) *Service {
-	privKey, err := elliptic.GeneratePrivateKey(elliptic.Secp256k1)
+	privKey, err := crypto.GeneratePrivateKey()
 	if err != nil {
 		t.Fatal("Error while generating private key", err)
 	}
@@ -96,7 +95,7 @@ func testPeerSessionImpl(t *testing.T, handleCh chan error) {
 		CLIENT_ID = "client-id"
 	)
 	rand.Seed(42)
-	privKey, err := elliptic.GeneratePrivateKey(elliptic.Secp256k1)
+	privKey, err := crypto.GeneratePrivateKey()
 	if err != nil {
 		t.Fatal("Error while generating private key", err)
 	}
