@@ -4,10 +4,11 @@ import (
 	"encoding/hex"
 	"flag"
 	"fmt"
-	"bootstrap_go"
 	"math/rand"
 	"net"
 	"time"
+
+	"github.com/golemfactory/bootstrap_go"
 
 	"github.com/ccding/go-stun/stun"
 	"github.com/ishbir/elliptic"
