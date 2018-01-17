@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/golemfactory/bootstrap_go"
+	"github.com/golemfactory/bootstrap_go/peerkeeper"
 
 	"github.com/ccding/go-stun/stun"
 	"github.com/ishbir/elliptic"
@@ -82,7 +83,7 @@ func main() {
 	service := bootstrap.NewService(
 		config,
 		privKey,
-		bootstrap.NewRandomizedPeerKeeper(config.PeerNum))
+		peerkeeper.NewRandomizedPeerKeeper(config.PeerNum))
 	err = service.Listen()
 	if err != nil {
 		fmt.Println("Error during listen:", err)

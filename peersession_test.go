@@ -9,6 +9,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/crypto/secp256k1"
 	"github.com/golemfactory/bootstrap_go/crypto"
+	"github.com/golemfactory/bootstrap_go/peerkeeper"
 	"github.com/golemfactory/bootstrap_go/python"
 	"github.com/ishbir/elliptic"
 )
@@ -39,7 +40,7 @@ func (c *TestConn) RemoteAddr() net.Addr {
 
 type AddPeerCall struct {
 	Id   string
-	Peer Peer
+	Peer peerkeeper.Peer
 }
 
 type GetPeersCall struct {
@@ -58,16 +59,16 @@ func NewTestPeerKeeper() *TestPeerKeeper {
 	}
 }
 
-func (pk *TestPeerKeeper) AddPeer(id string, peer Peer) {
+func (pk *TestPeerKeeper) AddPeer(id string, peer peerkeeper.Peer) {
 	pk.AddPeerCalls = append(pk.AddPeerCalls, AddPeerCall{id, peer})
 }
 
-func (pk *TestPeerKeeper) GetPeers(id string) []Peer {
+func (pk *TestPeerKeeper) GetPeers(id string) []peerkeeper.Peer {
 	pk.GetPeersCalls = append(pk.GetPeersCalls, GetPeersCall{id})
 	return nil
 }
 
-func getService(t *testing.T, pk PeerKeeper) *Service {
+func getService(t *testing.T, pk peerkeeper.PeerKeeper) *Service {
 	privKey, err := elliptic.GeneratePrivateKey(elliptic.Secp256k1)
 	if err != nil {
 		t.Fatal("Error while generating private key", err)

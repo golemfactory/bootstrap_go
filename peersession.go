@@ -8,6 +8,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/crypto/secp256k1"
 	"github.com/golemfactory/bootstrap_go/crypto"
+	"github.com/golemfactory/bootstrap_go/peerkeeper"
 	"github.com/ishbir/elliptic"
 	"golang.org/x/crypto/sha3"
 )
@@ -16,7 +17,7 @@ type PeerSession struct {
 	service *Service
 	conn    net.Conn
 	pubKey  *elliptic.PublicKey
-	peer    Peer
+	peer    peerkeeper.Peer
 	id      string
 }
 
@@ -115,7 +116,7 @@ func (session *PeerSession) performHandshake() error {
 		return err
 	}
 
-	session.peer = Peer{
+	session.peer = peerkeeper.Peer{
 		Address:  addr,
 		Port:     helloMsg.Port,
 		Node:     helloMsg.NodeInfo,
