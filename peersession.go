@@ -7,6 +7,7 @@ import (
 	"net"
 
 	"github.com/ethereum/go-ethereum/crypto/secp256k1"
+	"github.com/golemfactory/bootstrap_go/crypto"
 	"github.com/ishbir/elliptic"
 	"golang.org/x/crypto/sha3"
 )
@@ -171,7 +172,7 @@ func (session *PeerSession) sendMessage(msg Message) error {
 }
 
 func (session *PeerSession) decrypt(data []byte) ([]byte, error) {
-	res, err := DecryptPython(session.service.privKey, data)
+	res, err := crypto.DecryptPython(session.service.privKey, data)
 	if err != nil {
 		return nil, fmt.Errorf("unable to decrypt message: %v", err)
 	}
@@ -179,7 +180,7 @@ func (session *PeerSession) decrypt(data []byte) ([]byte, error) {
 }
 
 func (session *PeerSession) encrypt(data []byte) ([]byte, error) {
-	res, err := EncryptPython(session.service.privKey, data, session.pubKey)
+	res, err := crypto.EncryptPython(session.service.privKey, data, session.pubKey)
 	if err != nil {
 		return nil, fmt.Errorf("unable to encrypt message: %v", err)
 	}

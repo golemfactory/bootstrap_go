@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/ethereum/go-ethereum/crypto/secp256k1"
+	"github.com/golemfactory/bootstrap_go/crypto"
 	"github.com/ishbir/elliptic"
 )
 
@@ -111,10 +112,10 @@ func testPeerSessionImpl(t *testing.T, handleCh chan error) {
 		msg.GetBaseMessage().Sig = sig
 	}
 	encryptFunc := func(data []byte) ([]byte, error) {
-		return EncryptPython(privKey, data, &service.privKey.PublicKey)
+		return crypto.EncryptPython(privKey, data, &service.privKey.PublicKey)
 	}
 	decryptFunc := func(data []byte) ([]byte, error) {
-		return DecryptPython(privKey, data)
+		return crypto.DecryptPython(privKey, data)
 	}
 
 	msg, err := receiveMessage(conn, nil)
