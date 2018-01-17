@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"reflect"
 	"time"
+
+	"github.com/golemfactory/bootstrap_go/cbor"
 )
 
 type Message interface {
@@ -26,7 +28,7 @@ func (self *BaseMessage) GetBaseMessage() *BaseMessage {
 
 func (self *BaseMessage) GetShortHash(payload MessagePayload) []byte {
 	data := make([]byte, 0)
-	headerBytes, _ := cborSerialize([]interface{}{self.Header.Type, self.Header.Timestamp})
+	headerBytes, _ := cbor.Serialize([]interface{}{self.Header.Type, self.Header.Timestamp})
 	payloadBytes, _ := serializePayload(payload)
 	data = append(data, headerBytes...)
 	data = append(data, payloadBytes...)
@@ -116,7 +118,7 @@ func deserializeMessage(b []byte, decrypt DecryptFunc) (Message, error) {
 	}
 
 	var slots MessagePayload
-	err = cborDeserialize(payloadB, &slots)
+	err = cbor.Deserialize(payloadB, &slots)
 	if err != nil {
 		return nil, err
 	}
@@ -149,7 +151,7 @@ func deserializePayload(slotsList MessagePayload, msg Message) {
 }
 
 func serializePayload(payload MessagePayload) ([]byte, error) {
-	return cborSerialize(payload)
+	return cbor.Serialize(payload)
 }
 
 type EncryptFunc = func([]byte) ([]byte, error)
