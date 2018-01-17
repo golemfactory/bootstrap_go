@@ -23,6 +23,7 @@ type Config struct {
 	PeerNum              int
 	ProtocolId           uint64
 	GolemMessagesVersion string
+	GolemVersion         string
 }
 
 type Service struct {
@@ -90,7 +91,7 @@ func (s *Service) genHello() *message.Hello {
 		Challange:            nil,
 		Difficulty:           0,
 		ProtoId:              s.config.ProtocolId,
-		ClientVer:            "0.9.0",
+		ClientVer:            s.config.GolemVersion,
 		GolemMessagesVersion: s.config.GolemMessagesVersion,
 	}
 }

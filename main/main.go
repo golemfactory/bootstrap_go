@@ -21,6 +21,7 @@ const (
 	NAME                          = "Go Bootstrap"
 	PROTO_ID               uint64 = 19
 	GOLEM_MESSAGES_VERSION        = "1.4.1"
+	GOLEM_VERSION                 = "0.11.0"
 )
 
 func main() {
@@ -29,11 +30,13 @@ func main() {
 	var name string
 	var protocolId uint64
 	var golemMessagesVersion string
+	var golemVersion string
 	flag.Uint64Var(&port, "port", PORT, "Port to listen to")
 	flag.IntVar(&peerNum, "peer-num", PEER_NUM, "Number of peers to send")
 	flag.StringVar(&name, "name", NAME, "Name of the node")
 	flag.Uint64Var(&protocolId, "protocol-id", PROTO_ID, "Version of the P2P procotol")
 	flag.StringVar(&golemMessagesVersion, "golem-messages", GOLEM_MESSAGES_VERSION, "Version of the golem-messages library")
+	flag.StringVar(&golemVersion, "golem-version", GOLEM_VERSION, "Version of Golem")
 	flag.Parse()
 
 	var err error
@@ -76,6 +79,7 @@ func main() {
 		PeerNum:              PEER_NUM,
 		ProtocolId:           protocolId,
 		GolemMessagesVersion: golemMessagesVersion,
+		GolemVersion:         golemVersion,
 	}
 
 	fmt.Printf("Config: %+v\n", config)
