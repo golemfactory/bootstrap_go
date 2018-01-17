@@ -10,15 +10,16 @@ import (
 )
 
 type Config struct {
-	Name         string
-	Id           string
-	Port         uint64
-	PrvAddr      string
-	PubAddr      string
-	PrvAddresses []interface{}
-	NatType      string
-	PeerNum      int
-	ProtocolId   uint64
+	Name                 string
+	Id                   string
+	Port                 uint64
+	PrvAddr              string
+	PubAddr              string
+	PrvAddresses         []interface{}
+	NatType              string
+	PeerNum              int
+	ProtocolId           uint64
+	GolemMessagesVersion string
 }
 
 type Service struct {
@@ -80,12 +81,13 @@ func (s *Service) genHello() *MessageHello {
 			PrvAddresses: s.config.PrvAddresses,
 			NatType:      s.config.NatType,
 		},
-		RandVal:        rand.Float64(),
-		Metadata:       make(map[string]interface{}),
-		SolveChallange: false,
-		Challange:      nil,
-		Difficulty:     0,
-		ProtoId:        s.config.ProtocolId,
-		ClientVer:      "0.9.0",
+		RandVal:              rand.Float64(),
+		Metadata:             make(map[string]interface{}),
+		SolveChallange:       false,
+		Challange:            nil,
+		Difficulty:           0,
+		ProtoId:              s.config.ProtocolId,
+		ClientVer:            "0.9.0",
+		GolemMessagesVersion: s.config.GolemMessagesVersion,
 	}
 }

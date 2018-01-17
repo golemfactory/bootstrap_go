@@ -14,10 +14,11 @@ import (
 )
 
 const (
-	PORT            = 40102
-	PEER_NUM        = 100
-	NAME            = "Go Bootstrap"
-	PROTO_ID uint64 = 19
+	PORT                          = 40102
+	PEER_NUM                      = 100
+	NAME                          = "Go Bootstrap"
+	PROTO_ID               uint64 = 19
+	GOLEM_MESSAGES_VERSION        = "1.4.1"
 )
 
 func main() {
@@ -25,10 +26,12 @@ func main() {
 	var peerNum int
 	var name string
 	var protocolId uint64
+	var golemMessagesVersion string
 	flag.Uint64Var(&port, "port", PORT, "Port to listen to")
 	flag.IntVar(&peerNum, "peer-num", PEER_NUM, "Number of peers to send")
 	flag.StringVar(&name, "name", NAME, "Name of the node")
 	flag.Uint64Var(&protocolId, "protocol-id", PROTO_ID, "Version of the P2P procotol")
+	flag.StringVar(&golemMessagesVersion, "golem-messages", GOLEM_MESSAGES_VERSION, "Version of the golem-messages library")
 	flag.Parse()
 
 	var err error
@@ -61,15 +64,16 @@ func main() {
 	pubKeyHex := hex.EncodeToString(privKey.PublicKey.X) + hex.EncodeToString(privKey.PublicKey.Y)
 
 	config := &bootstrap.Config{
-		Name:         name,
-		Id:           pubKeyHex,
-		Port:         port,
-		PrvAddr:      prvAddresses[0].(string),
-		PubAddr:      host.IP(),
-		PrvAddresses: prvAddresses,
-		NatType:      nat.String(),
-		PeerNum:      PEER_NUM,
-		ProtocolId:   protocolId,
+		Name:                 name,
+		Id:                   pubKeyHex,
+		Port:                 port,
+		PrvAddr:              prvAddresses[0].(string),
+		PubAddr:              host.IP(),
+		PrvAddresses:         prvAddresses,
+		NatType:              nat.String(),
+		PeerNum:              PEER_NUM,
+		ProtocolId:           protocolId,
+		GolemMessagesVersion: golemMessagesVersion,
 	}
 
 	fmt.Printf("Config: %+v\n", config)
