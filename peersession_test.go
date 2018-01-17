@@ -9,6 +9,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/crypto/secp256k1"
 	"github.com/golemfactory/bootstrap_go/crypto"
+	"github.com/golemfactory/bootstrap_go/python"
 	"github.com/ishbir/elliptic"
 )
 
@@ -130,7 +131,7 @@ func testPeerSessionImpl(t *testing.T, handleCh chan error) {
 	hello := &MessageHello{
 		RandVal:     RAND_VAL,
 		ClientKeyId: CLIENT_ID,
-		NodeInfo: &Node{
+		NodeInfo: &python.Node{
 			Key: pubKeyHex,
 		},
 		ProtoId: TEST_PROTO_ID,

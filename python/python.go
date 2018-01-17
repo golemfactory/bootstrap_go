@@ -1,4 +1,4 @@
-package bootstrap
+package python
 
 import (
 	"io"

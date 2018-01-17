@@ -2,13 +2,15 @@ package bootstrap
 
 import (
 	"sync"
+
+	"github.com/golemfactory/bootstrap_go/python"
 )
 
 type Peer struct {
-	Address  string `cbor:"address"`
-	Port     uint64 `cbor:"port"`
-	Node     *Node  `cbor:"node"`
-	NodeName string `cbor:"node_name"`
+	Address  string       `cbor:"address"`
+	Port     uint64       `cbor:"port"`
+	Node     *python.Node `cbor:"node"`
+	NodeName string       `cbor:"node_name"`
 }
 
 // Implementations should be thread safe.

@@ -6,6 +6,7 @@ import (
 	"math/rand"
 	"net"
 
+	"github.com/golemfactory/bootstrap_go/python"
 	"github.com/ishbir/elliptic"
 )
 
@@ -69,7 +70,7 @@ func (s *Service) genHello() *MessageHello {
 		Port:        s.config.Port,
 		NodeName:    s.config.Name,
 		ClientKeyId: s.config.Id,
-		NodeInfo: &Node{
+		NodeInfo: &python.Node{
 			NodeName:     s.config.Name,
 			Key:          s.pubKeyHex,
 			PrvPort:      0,
