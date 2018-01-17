@@ -4,7 +4,7 @@ import (
 	"encoding/hex"
 	"flag"
 	"fmt"
-	"golem_rd/bootstrap-go/bootstrap"
+	"bootstrap_go"
 	"math/rand"
 	"net"
 	"time"
