@@ -10,25 +10,26 @@ import (
 
 type Message interface {
 	GetBaseMessage() *BaseMessage
-	GetShortHash() []byte
+	GetShortHash(payload MessagePayload) []byte
 	GetType() uint16
 	ShouldEncrypt() bool
 }
 
 type BaseMessage struct {
-	Header            Header
-	Sig               []byte
-	serializedPayload []byte
+	Header Header
+	Sig    []byte
 }
 
 func (self *BaseMessage) GetBaseMessage() *BaseMessage {
 	return self
 }
 
-func (self *BaseMessage) GetShortHash() []byte {
+func (self *BaseMessage) GetShortHash(payload MessagePayload) []byte {
 	data := make([]byte, 0)
-	data = append(data, self.Header.serialize()...)
-	data = append(data, self.serializedPayload...)
+	headerBytes, _ := cborSerialize([]interface{}{self.Header.Type, self.Header.Timestamp})
+	payloadBytes, _ := serializePayload(payload)
+	data = append(data, headerBytes...)
+	data = append(data, payloadBytes...)
 	hash := sha1.Sum(data)
 	return hash[:]
 }
@@ -105,7 +106,6 @@ func deserializeMessage(b []byte, decrypt DecryptFunc) (Message, error) {
 
 	msg.GetBaseMessage().Header = header
 	msg.GetBaseMessage().Sig = sigB
-	msg.GetBaseMessage().serializedPayload = payloadB
 
 	var err error
 	if header.Encrypted {
@@ -168,7 +168,6 @@ func serializeMessage(msg Message, encrypt EncryptFunc, sign SignFunc) ([]byte, 
 			return nil, err
 		}
 	}
-	msg.GetBaseMessage().serializedPayload = payloadBytes
 	sign(msg)
 	sigBytes := msg.GetBaseMessage().Sig
 

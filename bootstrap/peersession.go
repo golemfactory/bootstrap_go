@@ -187,7 +187,7 @@ func (session *PeerSession) encrypt(data []byte) ([]byte, error) {
 }
 
 func GetShortHashSha(msg Message) []byte {
-	data := msg.GetShortHash()
+	data := msg.GetShortHash(GetPayload(msg))
 	sha := sha3.New256()
 	sha.Write(data)
 	return sha.Sum(nil)

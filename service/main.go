@@ -17,7 +17,7 @@ const (
 	PORT            = 40102
 	PEER_NUM        = 100
 	NAME            = "Go Bootstrap"
-	PROTO_ID uint64 = 18
+	PROTO_ID uint64 = 19
 )
 
 func main() {
