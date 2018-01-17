@@ -6,6 +6,7 @@ import (
 	"math/rand"
 	"net"
 
+	"github.com/golemfactory/bootstrap_go/message"
 	"github.com/golemfactory/bootstrap_go/peerkeeper"
 	"github.com/golemfactory/bootstrap_go/python"
 	"github.com/ishbir/elliptic"
@@ -66,8 +67,8 @@ func (s *Service) Listen() error {
 	return nil
 }
 
-func (s *Service) genHello() *MessageHello {
-	return &MessageHello{
+func (s *Service) genHello() *message.Hello {
+	return &message.Hello{
 		Port:        s.config.Port,
 		NodeName:    s.config.Name,
 		ClientKeyId: s.config.Id,

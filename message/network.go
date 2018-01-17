@@ -1,4 +1,4 @@
-package bootstrap
+package message
 
 import (
 	"encoding/binary"
@@ -7,8 +7,8 @@ import (
 	"net"
 )
 
-func sendMessage(conn net.Conn, msg Message, encrypt EncryptFunc, sign SignFunc) error {
-	serialized, err := serializeMessage(msg, encrypt, sign)
+func Send(conn net.Conn, msg Message, encrypt EncryptFunc, sign SignFunc) error {
+	serialized, err := Serialize(msg, encrypt, sign)
 	if err != nil {
 		return err
 	}
@@ -25,7 +25,7 @@ func sendMessage(conn net.Conn, msg Message, encrypt EncryptFunc, sign SignFunc)
 	return nil
 }
 
-func receiveMessage(conn net.Conn, decrypt DecryptFunc) (Message, error) {
+func Receive(conn net.Conn, decrypt DecryptFunc) (Message, error) {
 	lenBuf := make([]byte, 4)
 	lenRead, err := io.ReadFull(conn, lenBuf)
 	if err != nil {
@@ -43,5 +43,5 @@ func receiveMessage(conn net.Conn, decrypt DecryptFunc) (Message, error) {
 	if uint32(lenRead) != msgLen {
 		return nil, fmt.Errorf("read %d bytes instead of %d", lenRead, msgLen)
 	}
-	return deserializeMessage(msg, decrypt)
+	return Deserialize(msg, decrypt)
 }

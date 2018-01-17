@@ -1,4 +1,4 @@
-package bootstrap
+package message
 
 import (
 	"crypto/sha1"
@@ -87,7 +87,7 @@ func deserializeHeader(header []byte) Header {
 
 type DecryptFunc = func([]byte) ([]byte, error)
 
-func deserializeMessage(b []byte, decrypt DecryptFunc) (Message, error) {
+func Deserialize(b []byte, decrypt DecryptFunc) (Message, error) {
 	payloadIdx := HEADER_LEN + SIG_LEN
 	headerB := b[:HEADER_LEN]
 	sigB := b[HEADER_LEN:payloadIdx]
@@ -96,13 +96,13 @@ func deserializeMessage(b []byte, decrypt DecryptFunc) (Message, error) {
 	header := deserializeHeader(headerB)
 	var msg Message
 	if header.Type == MSG_HELLO_TYPE {
-		msg = &MessageHello{}
+		msg = &Hello{}
 	} else if header.Type == MSG_RAND_VAL_TYPE {
-		msg = &MessageRandVal{}
+		msg = &RandVal{}
 	} else if header.Type == MSG_DISCONNECT_TYPE {
-		msg = &MessageDisconnect{}
+		msg = &Disconnect{}
 	} else if header.Type == MSG_PEERS_TYPE {
-		msg = &MessagePeers{}
+		msg = &Peers{}
 	} else {
 		return nil, fmt.Errorf("unsupported msg type %d", header.Type)
 	}
@@ -158,7 +158,7 @@ func serializePayload(payload MessagePayload) ([]byte, error) {
 type EncryptFunc = func([]byte) ([]byte, error)
 type SignFunc = func(Message)
 
-func serializeMessage(msg Message, encrypt EncryptFunc, sign SignFunc) ([]byte, error) {
+func Serialize(msg Message, encrypt EncryptFunc, sign SignFunc) ([]byte, error) {
 	header := &msg.GetBaseMessage().Header
 	header.Type = msg.GetType()
 	header.Timestamp = uint64(time.Now().Unix())
@@ -191,7 +191,7 @@ const (
 	MSG_PEERS_TYPE      = 1004
 )
 
-type MessageHello struct {
+type Hello struct {
 	BaseMessage
 	Port                 uint64       `msg_slot:"port"`
 	NodeName             string       `msg_slot:"node_name"`
@@ -207,24 +207,24 @@ type MessageHello struct {
 	ClientVer            string       `msg_slot:"client_ver"`
 }
 
-func (self *MessageHello) GetType() uint16 {
+func (self *Hello) GetType() uint16 {
 	return MSG_HELLO_TYPE
 }
 
-func (self *MessageHello) ShouldEncrypt() bool {
+func (self *Hello) ShouldEncrypt() bool {
 	return false
 }
 
-type MessageRandVal struct {
+type RandVal struct {
 	BaseMessage
 	RandVal float64 `msg_slot:"rand_val"`
 }
 
-func (self *MessageRandVal) GetType() uint16 {
+func (self *RandVal) GetType() uint16 {
 	return MSG_RAND_VAL_TYPE
 }
 
-func (self *MessageRandVal) ShouldEncrypt() bool {
+func (self *RandVal) ShouldEncrypt() bool {
 	return true
 }
 
@@ -236,28 +236,28 @@ const (
 	DISCONNECT_BOOTSTRAP        DisconnectReason = "bootstrap"
 )
 
-type MessageDisconnect struct {
+type Disconnect struct {
 	BaseMessage
 	Reason DisconnectReason `msg_slot:"reason"`
 }
 
-func (self *MessageDisconnect) GetType() uint16 {
+func (self *Disconnect) GetType() uint16 {
 	return MSG_DISCONNECT_TYPE
 }
 
-func (self *MessageDisconnect) ShouldEncrypt() bool {
+func (self *Disconnect) ShouldEncrypt() bool {
 	return false
 }
 
-type MessagePeers struct {
+type Peers struct {
 	BaseMessage
 	Peers []interface{} `msg_slot:"peers"`
 }
 
-func (self *MessagePeers) GetType() uint16 {
+func (self *Peers) GetType() uint16 {
 	return MSG_PEERS_TYPE
 }
 
-func (self *MessagePeers) ShouldEncrypt() bool {
+func (self *Peers) ShouldEncrypt() bool {
 	return true
 }

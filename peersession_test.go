@@ -9,6 +9,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/crypto/secp256k1"
 	"github.com/golemfactory/bootstrap_go/crypto"
+	"github.com/golemfactory/bootstrap_go/message"
 	"github.com/golemfactory/bootstrap_go/peerkeeper"
 	"github.com/golemfactory/bootstrap_go/python"
 	"github.com/ishbir/elliptic"
@@ -109,7 +110,7 @@ func testPeerSessionImpl(t *testing.T, handleCh chan error) {
 		handleCh <- ps.handle()
 	}()
 
-	signFunc := func(msg Message) {
+	signFunc := func(msg message.Message) {
 		sig, _ := secp256k1.Sign(GetShortHashSha(msg), privKey.Key)
 		msg.GetBaseMessage().Sig = sig
 	}
@@ -120,16 +121,16 @@ func testPeerSessionImpl(t *testing.T, handleCh chan error) {
 		return crypto.DecryptPython(privKey, data)
 	}
 
-	msg, err := receiveMessage(conn, nil)
+	msg, err := message.Receive(conn, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
-	serverHello := msg.(*MessageHello)
+	serverHello := msg.(*message.Hello)
 	if serverHello.NodeName != TEST_NAME {
 		t.Error("Wrong bootstrap node name:", serverHello.NodeName)
 	}
 
-	hello := &MessageHello{
+	hello := &message.Hello{
 		RandVal:     RAND_VAL,
 		ClientKeyId: CLIENT_ID,
 		NodeInfo: &python.Node{
@@ -137,33 +138,33 @@ func testPeerSessionImpl(t *testing.T, handleCh chan error) {
 		},
 		ProtoId: TEST_PROTO_ID,
 	}
-	err = sendMessage(conn, hello, encryptFunc, signFunc)
+	err = message.Send(conn, hello, encryptFunc, signFunc)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	randVal := &MessageRandVal{
+	randVal := &message.RandVal{
 		RandVal: serverHello.RandVal,
 	}
-	err = sendMessage(conn, randVal, encryptFunc, signFunc)
+	err = message.Send(conn, randVal, encryptFunc, signFunc)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	msg, err = receiveMessage(conn, decryptFunc)
+	msg, err = message.Receive(conn, decryptFunc)
 	if err != nil {
 		t.Fatal(err)
 	}
-	serverRandVal := msg.(*MessageRandVal)
+	serverRandVal := msg.(*message.RandVal)
 	if serverRandVal.RandVal != RAND_VAL {
 		t.Fatal("Wrong RandVal", serverRandVal.RandVal)
 	}
 
-	msg, err = receiveMessage(conn, decryptFunc)
+	msg, err = message.Receive(conn, decryptFunc)
 	if err != nil {
 		t.Fatal(err)
 	}
-	serverPeers := msg.(*MessagePeers)
+	serverPeers := msg.(*message.Peers)
 	if len(serverPeers.Peers) != 0 {
 		t.Errorf("Expected empty list of peers, got %+v", serverPeers.Peers)
 	}

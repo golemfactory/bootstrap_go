@@ -8,6 +8,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/crypto/secp256k1"
 	"github.com/golemfactory/bootstrap_go/crypto"
+	"github.com/golemfactory/bootstrap_go/message"
 	"github.com/golemfactory/bootstrap_go/peerkeeper"
 	"github.com/ishbir/elliptic"
 	"golang.org/x/crypto/sha3"
@@ -32,8 +33,8 @@ func (session *PeerSession) Close() {
 	session.conn.Close()
 }
 
-func (session *PeerSession) sendDisconnect(reason DisconnectReason) error {
-	return session.sendMessage(&MessageDisconnect{Reason: reason})
+func (session *PeerSession) sendDisconnect(reason message.DisconnectReason) error {
+	return session.sendMessage(&message.Disconnect{Reason: reason})
 }
 
 func (session *PeerSession) performHandshake() error {
@@ -49,20 +50,20 @@ func (session *PeerSession) performHandshake() error {
 	if err != nil {
 		return err
 	}
-	if msg.GetType() == MSG_DISCONNECT_TYPE {
-		if disconnectMsg, ok := msg.(*MessageDisconnect); ok {
+	if msg.GetType() == message.MSG_DISCONNECT_TYPE {
+		if disconnectMsg, ok := msg.(*message.Disconnect); ok {
 			return fmt.Errorf("peer disconnected, reason: %v", disconnectMsg.Reason)
 		}
 		return fmt.Errorf("wrong message type, was expecting Disconnect")
 	}
-	if msg.GetType() != MSG_HELLO_TYPE {
+	if msg.GetType() != message.MSG_HELLO_TYPE {
 		return fmt.Errorf("unexpected msg type %d, was expecting Hello", msg.GetType())
 	}
 
-	helloMsg := msg.(*MessageHello)
+	helloMsg := msg.(*message.Hello)
 
 	if helloMsg.ProtoId != session.service.config.ProtocolId {
-		if err := session.sendDisconnect(DISCONNECT_PROTOCOL_VERSION); err != nil {
+		if err := session.sendDisconnect(message.DISCONNECT_PROTOCOL_VERSION); err != nil {
 			return err
 		}
 		return fmt.Errorf("not matching protocol ID, remote %v, local %v", helloMsg.ProtoId, session.service.config.ProtocolId)
@@ -83,29 +84,29 @@ func (session *PeerSession) performHandshake() error {
 	if err != nil {
 		return err
 	}
-	if msg.GetType() == MSG_DISCONNECT_TYPE {
-		if disconnectMsg, ok := msg.(*MessageDisconnect); ok {
+	if msg.GetType() == message.MSG_DISCONNECT_TYPE {
+		if disconnectMsg, ok := msg.(*message.Disconnect); ok {
 			return fmt.Errorf("peer disconnected, reason: %v", disconnectMsg.Reason)
 		}
 		return fmt.Errorf("wrong message type, was expecting Disconnect")
 	}
-	if msg.GetType() != MSG_RAND_VAL_TYPE {
+	if msg.GetType() != message.MSG_RAND_VAL_TYPE {
 		return fmt.Errorf("unexpected msg type %d, was expecting RandVal", msg.GetType())
 	}
-	randValMsg := msg.(*MessageRandVal)
+	randValMsg := msg.(*message.RandVal)
 	if randValMsg.RandVal != myHello.RandVal {
 		return fmt.Errorf("incorrect RandVal value")
 	}
 
 	signed, err := session.verifySign(randValMsg)
 	if !signed || err != nil {
-		if err := session.sendDisconnect(DISCONNECT_UNVERIFIED); err != nil {
+		if err := session.sendDisconnect(message.DISCONNECT_UNVERIFIED); err != nil {
 			return err
 		}
 		return fmt.Errorf("RandVal message not signed correctly")
 	}
 
-	myRandValMsg := MessageRandVal{RandVal: helloMsg.RandVal}
+	myRandValMsg := message.RandVal{RandVal: helloMsg.RandVal}
 	err = session.sendMessage(&myRandValMsg)
 	if err != nil {
 		return err
@@ -135,7 +136,7 @@ func (session *PeerSession) handle() error {
 
 	pk := session.service.peerKeeper
 	peers := pk.GetPeers(session.id)
-	peersMsg := &MessagePeers{
+	peersMsg := &message.Peers{
 		Peers: make([]interface{}, len(peers)),
 	}
 	for idx, p := range peers {
@@ -147,8 +148,8 @@ func (session *PeerSession) handle() error {
 	}
 	pk.AddPeer(session.id, session.peer)
 
-	disconnectMsg := &MessageDisconnect{
-		Reason: DISCONNECT_BOOTSTRAP,
+	disconnectMsg := &message.Disconnect{
+		Reason: message.DISCONNECT_BOOTSTRAP,
 	}
 	err = session.sendMessage(disconnectMsg)
 	if err != nil {
@@ -158,12 +159,12 @@ func (session *PeerSession) handle() error {
 	return nil
 }
 
-func (session *PeerSession) receiveMessage() (Message, error) {
-	return receiveMessage(session.conn, session.decrypt)
+func (session *PeerSession) receiveMessage() (message.Message, error) {
+	return message.Receive(session.conn, session.decrypt)
 }
 
-func (session *PeerSession) sendMessage(msg Message) error {
-	return sendMessage(
+func (session *PeerSession) sendMessage(msg message.Message) error {
+	return message.Send(
 		session.conn,
 		msg,
 		func(data []byte) ([]byte, error) {
@@ -188,19 +189,19 @@ func (session *PeerSession) encrypt(data []byte) ([]byte, error) {
 	return res, nil
 }
 
-func GetShortHashSha(msg Message) []byte {
-	data := msg.GetShortHash(GetPayload(msg))
+func GetShortHashSha(msg message.Message) []byte {
+	data := msg.GetShortHash(message.GetPayload(msg))
 	sha := sha3.New256()
 	sha.Write(data)
 	return sha.Sum(nil)
 }
 
-func (session *PeerSession) sign(msg Message) {
+func (session *PeerSession) sign(msg message.Message) {
 	sig, _ := secp256k1.Sign(GetShortHashSha(msg), session.service.privKey.Key)
 	msg.GetBaseMessage().Sig = sig
 }
 
-func (session *PeerSession) verifySign(msg Message) (bool, error) {
+func (session *PeerSession) verifySign(msg message.Message) (bool, error) {
 	keyBytes := []byte{0x04}
 	keyBytes = append(keyBytes, session.pubKey.X...)
 	keyBytes = append(keyBytes, session.pubKey.Y...)

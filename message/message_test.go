@@ -1,4 +1,4 @@
-package bootstrap
+package message
 
 import (
 	"bytes"
@@ -28,7 +28,7 @@ func testImpl(t *testing.T, msg Message) Message {
 		msg.GetBaseMessage().Sig = sig
 	}
 
-	serialized, err := serializeMessage(msg, encryptFunc, signFunc)
+	serialized, err := Serialize(msg, encryptFunc, signFunc)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -39,7 +39,7 @@ func testImpl(t *testing.T, msg Message) Message {
 		t.Error("Sign function not called")
 	}
 
-	deserialized, err := deserializeMessage(serialized, decryptFunc)
+	deserialized, err := Deserialize(serialized, decryptFunc)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -62,7 +62,7 @@ func testImpl(t *testing.T, msg Message) Message {
 
 func TestSerializeationEncrypted(t *testing.T) {
 	const RAND_VAL = 0.1337
-	msg := &MessageRandVal{
+	msg := &RandVal{
 		RandVal: RAND_VAL,
 	}
 	if !msg.ShouldEncrypt() {
@@ -70,7 +70,7 @@ func TestSerializeationEncrypted(t *testing.T) {
 	}
 	deserialized := testImpl(t, msg)
 
-	castedMsg, ok := deserialized.(*MessageRandVal)
+	castedMsg, ok := deserialized.(*RandVal)
 	if !ok {
 		t.Fatal("Message should be of type MessageRandVal")
 	}
@@ -81,7 +81,7 @@ func TestSerializeationEncrypted(t *testing.T) {
 
 func TestSerializeationNotEncrypted(t *testing.T) {
 	const REASON = "Unittest"
-	msg := &MessageDisconnect{
+	msg := &Disconnect{
 		Reason: REASON,
 	}
 	if msg.ShouldEncrypt() {
@@ -89,7 +89,7 @@ func TestSerializeationNotEncrypted(t *testing.T) {
 	}
 	deserialized := testImpl(t, msg)
 
-	castedMsg, ok := deserialized.(*MessageDisconnect)
+	castedMsg, ok := deserialized.(*Disconnect)
 	if !ok {
 		t.Fatal("Message should be of type MessageDisconnect")
 	}
