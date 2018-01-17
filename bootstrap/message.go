@@ -1,15 +1,11 @@
 package bootstrap
 
 import (
-	"bufio"
-	"bytes"
 	"crypto/sha1"
 	"encoding/binary"
 	"fmt"
 	"reflect"
 	"time"
-
-	"github.com/whyrusleeping/cbor/go"
 )
 
 type Message interface {
@@ -55,23 +51,6 @@ func GetPayload(msg Message) MessagePayload {
 		}
 	}
 	return payload
-}
-
-// https://pypi.python.org/pypi/cbor2/3.0.4
-// Semantics: Mark shared value
-type Tag28Decoder struct{}
-
-func (self *Tag28Decoder) GetTag() uint64 {
-	return 28
-}
-
-func (self *Tag28Decoder) DecodeTarget() interface{} {
-	var v interface{}
-	return &v
-}
-
-func (self *Tag28Decoder) PostDecode(v interface{}) (interface{}, error) {
-	return *v.(*interface{}), nil
 }
 
 const (
@@ -136,14 +115,8 @@ func deserializeMessage(b []byte, decrypt DecryptFunc) (Message, error) {
 		}
 	}
 
-	reader := bytes.NewReader(payloadB)
-	decoder := cbor.NewDecoder(reader)
-	var pyObjectDecoder PyObjectDecoder
-	decoder.TagDecoders[pyObjectDecoder.GetTag()] = &pyObjectDecoder
-	var tag28Decoder Tag28Decoder
-	decoder.TagDecoders[tag28Decoder.GetTag()] = &tag28Decoder
 	var slots MessagePayload
-	err = decoder.Decode(&slots)
+	err = cborDeserialize(payloadB, &slots)
 	if err != nil {
 		return nil, err
 	}
@@ -176,15 +149,7 @@ func deserializePayload(slotsList MessagePayload, msg Message) {
 }
 
 func serializePayload(payload MessagePayload) ([]byte, error) {
-	var b bytes.Buffer
-	writer := bufio.NewWriter(&b)
-	encoder := cbor.NewEncoder(writer)
-	err := encoder.Encode(payload)
-	if err != nil {
-		return nil, err
-	}
-	writer.Flush()
-	return b.Bytes(), nil
+	return cborSerialize(payload)
 }
 
 type EncryptFunc = func([]byte) ([]byte, error)
@@ -193,7 +158,7 @@ type SignFunc = func(Message)
 func serializeMessage(msg Message, encrypt EncryptFunc, sign SignFunc) ([]byte, error) {
 	header := &msg.GetBaseMessage().Header
 	header.Type = msg.GetType()
-	header.Timestamp = uint64(time.Now().UnixNano()) / uint64(time.Microsecond)
+	header.Timestamp = uint64(time.Now().Unix())
 	header.Encrypted = msg.ShouldEncrypt()
 	headerBytes := header.serialize()
 	payloadBytes, err := serializePayload(GetPayload(msg))
