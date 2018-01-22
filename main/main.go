@@ -19,7 +19,7 @@ const (
 	PEER_NUM                      = 100
 	NAME                          = "Go Bootstrap"
 	PROTO_ID               uint64 = 20
-	GOLEM_MESSAGES_VERSION        = "1.4.1"
+	GOLEM_MESSAGES_VERSION        = "1.5.1"
 	GOLEM_VERSION                 = "0.11.0"
 )
 
