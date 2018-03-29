@@ -17,6 +17,7 @@ import (
 const (
 	TEST_NAME     = "bootstrap-unittest"
 	TEST_PROTO_ID = 1337
+	KEY_DIFF      = 0
 )
 
 type TestAddress struct {
@@ -69,7 +70,7 @@ func (pk *TestPeerKeeper) GetPeers(id string) []peerkeeper.Peer {
 }
 
 func getService(t *testing.T, pk peerkeeper.PeerKeeper) *Service {
-	privKey, err := crypto.GeneratePrivateKey()
+	privKey, err := crypto.GeneratePrivateKey(KEY_DIFF)
 	if err != nil {
 		t.Fatal("Error while generating private key", err)
 	}
@@ -83,7 +84,7 @@ func getService(t *testing.T, pk peerkeeper.PeerKeeper) *Service {
 		PrvAddresses: nil,
 		NatType:      "nat type",
 		PeerNum:      100,
-		ProtocolId:   TEST_PROTO_ID,
+		ProtocolId:   string(TEST_PROTO_ID),
 	}
 
 	return NewService(config, privKey, pk)
@@ -95,7 +96,7 @@ func testPeerSessionImpl(t *testing.T, handleCh chan error) {
 		CLIENT_ID = "client-id"
 	)
 	rand.Seed(42)
-	privKey, err := crypto.GeneratePrivateKey()
+	privKey, err := crypto.GeneratePrivateKey(KEY_DIFF)
 	if err != nil {
 		t.Fatal("Error while generating private key", err)
 	}
@@ -135,7 +136,7 @@ func testPeerSessionImpl(t *testing.T, handleCh chan error) {
 		NodeInfo: &python.Node{
 			Key: pubKeyHex,
 		},
-		ProtoId: TEST_PROTO_ID,
+		ProtoId: string(TEST_PROTO_ID),
 	}
 	err = message.Send(conn, hello, encryptFunc, signFunc)
 	if err != nil {

@@ -7,6 +7,8 @@ import (
 	"encoding/binary"
 	"encoding/hex"
 	"errors"
+	"fmt"
+	"io/ioutil"
 	"math/rand"
 
 	"github.com/ishbir/elliptic"
@@ -20,8 +22,38 @@ func GetPubKeyHex(privateKey PrivateKey) string {
 	return hex.EncodeToString(privKey.PublicKey.X) + hex.EncodeToString(privKey.PublicKey.Y)
 }
 
-func GeneratePrivateKey() (PrivateKey, error) {
-	return elliptic.GeneratePrivateKey(elliptic.Secp256k1)
+func GeneratePrivateKey(difficulty int) PrivateKey {
+	for true {
+		privKey, err := elliptic.GeneratePrivateKey(elliptic.Secp256k1)
+		if err != nil {
+			fmt.Println("Error while generating private key", err)
+			return nil
+		}
+
+		xPart := make([]byte, len(privKey.PublicKey.X))
+		copy(xPart, privKey.PublicKey.X)
+		pubKey := sha256.Sum256(append(xPart, privKey.PublicKey.Y...))
+
+		nullBytes := difficulty / 8
+		remainder := uint(difficulty % 8)
+		isDifficult := true
+
+		for i := 0; i < nullBytes; i++ {
+			if pubKey[i] != 0 {
+				isDifficult = false
+				break
+			}
+		}
+
+		if isDifficult {
+			if pubKey[nullBytes] < (1 << (8 - remainder)) {
+				keyData := GetPubKeyHex(privKey)
+				ioutil.WriteFile("identity", []byte(keyData), 0600)
+				return privKey
+			}
+		}
+	}
+	return nil
 }
 
 func PublicKeyFromBytes(b []byte) (PublicKey, error) {

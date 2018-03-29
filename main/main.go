@@ -21,6 +21,7 @@ const (
 	PROTO_ID               = "26"
 	GOLEM_MESSAGES_VERSION = "1.5.1"
 	GOLEM_VERSION          = "0.11.0"
+	KEY_DIFF               = 14
 )
 
 func main() {
@@ -66,9 +67,8 @@ func main() {
 	}
 
 	rand.Seed(time.Now().UTC().UnixNano())
-	privKey, err := crypto.GeneratePrivateKey()
-	if err != nil {
-		fmt.Println("Error while generating private key", err)
+	privKey := crypto.GeneratePrivateKey(KEY_DIFF)
+	if privKey == nil {
 		return
 	}
 	pubKeyHex := crypto.GetPubKeyHex(privKey)
