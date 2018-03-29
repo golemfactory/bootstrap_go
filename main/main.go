@@ -15,28 +15,34 @@ import (
 )
 
 const (
-	PORT                          = 40102
-	PEER_NUM                      = 100
-	NAME                          = "Go Bootstrap"
-	PROTO_ID               uint64 = 20
-	GOLEM_MESSAGES_VERSION        = "1.5.1"
-	GOLEM_VERSION                 = "0.11.0"
+	PORT                   = 40102
+	PEER_NUM               = 100
+	NAME                   = "Go Bootstrap"
+	PROTO_ID               = "26"
+	GOLEM_MESSAGES_VERSION = "1.5.1"
+	GOLEM_VERSION          = "0.11.0"
 )
 
 func main() {
 	var port uint64
 	var peerNum int
 	var name string
-	var protocolId uint64
+	var protocolId string
 	var golemMessagesVersion string
 	var golemVersion string
+	var mainnet bool
 	flag.Uint64Var(&port, "port", PORT, "Port to listen to")
 	flag.IntVar(&peerNum, "peer-num", PEER_NUM, "Number of peers to send")
 	flag.StringVar(&name, "name", NAME, "Name of the node")
-	flag.Uint64Var(&protocolId, "protocol-id", PROTO_ID, "Version of the P2P procotol")
+	flag.StringVar(&protocolId, "protocol-id", PROTO_ID, "Version of the P2P procotol")
 	flag.StringVar(&golemMessagesVersion, "golem-messages", GOLEM_MESSAGES_VERSION, "Version of the golem-messages library")
 	flag.StringVar(&golemVersion, "golem-version", GOLEM_VERSION, "Version of Golem")
+	flag.BoolVar(&mainnet, "mainnet", false, "Whether to run on a mainnet")
 	flag.Parse()
+
+	if !mainnet {
+		protocolId += "-testnet"
+	}
 
 	var err error
 	addrs, err := net.InterfaceAddrs()

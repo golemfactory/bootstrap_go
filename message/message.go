@@ -202,7 +202,7 @@ type Hello struct {
 	SolveChallange       bool         `msg_slot:"solve_challenge"`
 	Challange            interface{}  `msg_slot:"challenge"`
 	Difficulty           uint64       `msg_slot:"difficulty"`
-	ProtoId              uint64       `msg_slot:"proto_id"`
+	ProtoId              string       `msg_slot:"proto_id"`
 	GolemMessagesVersion string       `msg_slot:"golem_messages_version"`
 	ClientVer            string       `msg_slot:"client_ver"`
 }
