@@ -1,11 +1,6 @@
 package python
 
-import (
-	"io"
-
-	"github.com/golemfactory/bootstrap_go/cbor"
-	cborimpl "github.com/whyrusleeping/cbor/go"
-)
+import "reflect"
 
 type Node struct {
 	NodeName     string        `pyobj:"node_name"`
@@ -20,14 +15,31 @@ type Node struct {
 	NatType      string        `pyobj:"nat_type"`
 }
 
-func (self *Node) GetPyObjectName() string {
-	return "golem.network.p2p.node.Node"
+func (self *Node) ToDict() map[interface{}]interface{} {
+	m := map[interface{}]interface{}{}
+	v := reflect.ValueOf(self).Elem()
+	for i := 0; i < v.NumField(); i++ {
+		field := v.Type().Field(i)
+		tag := field.Tag.Get("pyobj")
+		if tag != "" {
+			m[tag] = v.Field(i).Interface()
+		}
+	}
+	return m
 }
 
-func (self *Node) ToCBOR(w io.Writer, enc *cborimpl.Encoder) error {
-	return cbor.ToCBOR(self, w, enc)
-}
-
-func init() {
-	cbor.RegisterPythonType("golem.network.p2p.node.Node", func() interface{} { return &Node{} })
+func NodeToDict(m map[interface{}]interface{}) *Node {
+	res := &Node{}
+	elem := reflect.ValueOf(res).Elem()
+	for i := 0; i < elem.NumField(); i++ {
+		field := elem.Type().Field(i)
+		val := elem.Field(i)
+		tag := field.Tag.Get("pyobj")
+		if tag != "" {
+			if vv, ok := m[tag]; ok && vv != nil {
+				val.Set(reflect.ValueOf(vv))
+			}
+		}
+	}
+	return res
 }

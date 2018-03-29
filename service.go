@@ -69,22 +69,23 @@ func (s *Service) Listen() error {
 }
 
 func (s *Service) genHello() *message.Hello {
+	node := python.Node{
+		NodeName:     s.config.Name,
+		Key:          s.pubKeyHex,
+		PrvPort:      0,
+		PubPort:      0,
+		P2pPrvPort:   s.config.Port,
+		P2pPubPort:   0,
+		PrvAddr:      s.config.PrvAddr,
+		PubAddr:      s.config.PubAddr,
+		PrvAddresses: s.config.PrvAddresses,
+		NatType:      s.config.NatType,
+	}
 	return &message.Hello{
-		Port:        s.config.Port,
-		NodeName:    s.config.Name,
-		ClientKeyId: s.config.Id,
-		NodeInfo: &python.Node{
-			NodeName:     s.config.Name,
-			Key:          s.pubKeyHex,
-			PrvPort:      0,
-			PubPort:      0,
-			P2pPrvPort:   s.config.Port,
-			P2pPubPort:   0,
-			PrvAddr:      s.config.PrvAddr,
-			PubAddr:      s.config.PubAddr,
-			PrvAddresses: s.config.PrvAddresses,
-			NatType:      s.config.NatType,
-		},
+		Port:                 s.config.Port,
+		NodeName:             s.config.Name,
+		ClientKeyId:          s.config.Id,
+		NodeInfo:             node.ToDict(),
 		RandVal:              rand.Float64(),
 		Metadata:             make(map[string]interface{}),
 		SolveChallange:       false,

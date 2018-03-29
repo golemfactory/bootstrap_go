@@ -22,7 +22,5 @@ func Serialize(obj interface{}) ([]byte, error) {
 func Deserialize(input []byte, obj interface{}) error {
 	reader := bytes.NewReader(input)
 	decoder := impl.NewDecoder(reader)
-	var pyObjectDecoder PyObjectDecoder
-	decoder.TagDecoders[pyObjectDecoder.GetTag()] = &pyObjectDecoder
 	return decoder.Decode(obj)
 }

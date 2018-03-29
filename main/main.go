@@ -19,8 +19,8 @@ const (
 	PEER_NUM               = 100
 	NAME                   = "Go Bootstrap"
 	PROTO_ID               = "26"
-	GOLEM_MESSAGES_VERSION = "1.5.1"
-	GOLEM_VERSION          = "0.11.0"
+	GOLEM_MESSAGES_VERSION = "1.17.2"
+	GOLEM_VERSION          = "0.14.0"
 )
 
 func main() {
