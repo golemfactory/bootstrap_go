@@ -16,7 +16,7 @@ import (
 
 const (
 	TEST_NAME     = "bootstrap-unittest"
-	TEST_PROTO_ID = 1337
+	TEST_PROTO_ID = "1337"
 )
 
 type TestAddress struct {
