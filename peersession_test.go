@@ -40,7 +40,7 @@ func (c *TestConn) RemoteAddr() net.Addr {
 
 type AddPeerCall struct {
 	Id   string
-	Peer peerkeeper.Peer
+	Peer python.Peer
 }
 
 type GetPeersCall struct {
@@ -59,11 +59,11 @@ func NewTestPeerKeeper() *TestPeerKeeper {
 	}
 }
 
-func (pk *TestPeerKeeper) AddPeer(id string, peer peerkeeper.Peer) {
+func (pk *TestPeerKeeper) AddPeer(id string, peer python.Peer) {
 	pk.AddPeerCalls = append(pk.AddPeerCalls, AddPeerCall{id, peer})
 }
 
-func (pk *TestPeerKeeper) GetPeers(id string) []peerkeeper.Peer {
+func (pk *TestPeerKeeper) GetPeers(id string) []python.Peer {
 	pk.GetPeersCalls = append(pk.GetPeersCalls, GetPeersCall{id})
 	return nil
 }
@@ -129,13 +129,14 @@ func testPeerSessionImpl(t *testing.T, handleCh chan error) {
 		t.Error("Wrong bootstrap node name:", serverHello.NodeName)
 	}
 
+	node := python.Node{
+		Key: pubKeyHex,
+	}
 	hello := &message.Hello{
 		RandVal:     RAND_VAL,
 		ClientKeyId: CLIENT_ID,
-		NodeInfo: &python.Node{
-			Key: pubKeyHex,
-		},
-		ProtoId: TEST_PROTO_ID,
+		NodeInfo:    node.ToDict(),
+		ProtoId:     TEST_PROTO_ID,
 	}
 	err = message.Send(conn, hello, encryptFunc, signFunc)
 	if err != nil {
