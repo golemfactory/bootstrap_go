@@ -2,6 +2,27 @@ package python
 
 import "reflect"
 
+type serializableToDict interface {
+	ToDict() map[interface{}]interface{}
+}
+
+func toDict(obj interface{}) map[interface{}]interface{} {
+	m := map[interface{}]interface{}{}
+	v := reflect.ValueOf(obj).Elem()
+	for i := 0; i < v.NumField(); i++ {
+		field := v.Type().Field(i)
+		tag := field.Tag.Get("pyobj")
+		if tag != "" {
+			val := v.Field(i).Interface()
+			if serializableVal, ok := val.(serializableToDict); ok {
+				val = serializableVal.ToDict()
+			}
+			m[tag] = val
+		}
+	}
+	return m
+}
+
 type Node struct {
 	NodeName     string        `pyobj:"node_name"`
 	Key          string        `pyobj:"key"`
@@ -16,19 +37,10 @@ type Node struct {
 }
 
 func (self *Node) ToDict() map[interface{}]interface{} {
-	m := map[interface{}]interface{}{}
-	v := reflect.ValueOf(self).Elem()
-	for i := 0; i < v.NumField(); i++ {
-		field := v.Type().Field(i)
-		tag := field.Tag.Get("pyobj")
-		if tag != "" {
-			m[tag] = v.Field(i).Interface()
-		}
-	}
-	return m
+	return toDict(self)
 }
 
-func NodeToDict(m map[interface{}]interface{}) *Node {
+func DictToNode(m map[interface{}]interface{}) *Node {
 	res := &Node{}
 	elem := reflect.ValueOf(res).Elem()
 	for i := 0; i < elem.NumField(); i++ {
@@ -42,4 +54,15 @@ func NodeToDict(m map[interface{}]interface{}) *Node {
 		}
 	}
 	return res
+}
+
+type Peer struct {
+	Address  string `pyobj:"address"`
+	Port     uint64 `pyobj:"port"`
+	Node     *Node  `pyobj:"node"`
+	NodeName string `pyobj:"node_name"`
+}
+
+func (self *Peer) ToDict() map[interface{}]interface{} {
+	return toDict(self)
 }
