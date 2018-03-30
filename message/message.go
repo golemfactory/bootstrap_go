@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/golemfactory/bootstrap_go/cbor"
-	"github.com/golemfactory/bootstrap_go/python"
 )
 
 type Message interface {
@@ -16,6 +15,7 @@ type Message interface {
 	GetShortHash(payload MessagePayload) []byte
 	GetType() uint16
 	ShouldEncrypt() bool
+	serializationExtraData() []byte
 }
 
 type BaseMessage struct {
@@ -25,6 +25,10 @@ type BaseMessage struct {
 
 func (self *BaseMessage) GetBaseMessage() *BaseMessage {
 	return self
+}
+
+func (self *BaseMessage) serializationExtraData() []byte {
+	return []byte{}
 }
 
 func (self *BaseMessage) GetShortHash(payload MessagePayload) []byte {
@@ -181,6 +185,7 @@ func Serialize(msg Message, encrypt EncryptFunc, sign SignFunc) ([]byte, error) 
 	res = append(res, headerBytes...)
 	res = append(res, sigBytes...)
 	res = append(res, payloadBytes...)
+	res = append(res, msg.serializationExtraData()...)
 	return res, nil
 }
 
@@ -193,18 +198,18 @@ const (
 
 type Hello struct {
 	BaseMessage
-	Port                 uint64       `msg_slot:"port"`
-	NodeName             string       `msg_slot:"node_name"`
-	ClientKeyId          string       `msg_slot:"client_key_id"`
-	NodeInfo             *python.Node `msg_slot:"node_info"`
 	RandVal              float64      `msg_slot:"rand_val"`
-	Metadata             interface{}  `msg_slot:"metadata"`
+	ProtoId              string       `msg_slot:"proto_id"`
+	NodeName             string       `msg_slot:"node_name"`
+	NodeInfo             map[interface{}]interface{} `msg_slot:"node_info"`
+	Port                 uint64       `msg_slot:"port"`
+	ClientVer            string       `msg_slot:"client_ver"`
+	ClientKeyId          string       `msg_slot:"client_key_id"`
 	SolveChallange       bool         `msg_slot:"solve_challenge"`
 	Challange            interface{}  `msg_slot:"challenge"`
 	Difficulty           uint64       `msg_slot:"difficulty"`
-	ProtoId              string       `msg_slot:"proto_id"`
-	GolemMessagesVersion string       `msg_slot:"golem_messages_version"`
-	ClientVer            string       `msg_slot:"client_ver"`
+	Metadata             interface{}  `msg_slot:"metadata"`
+	GolemMessagesVersion string       `msg_slot:"_version"`
 }
 
 func (self *Hello) GetType() uint16 {
@@ -213,6 +218,15 @@ func (self *Hello) GetType() uint16 {
 
 func (self *Hello) ShouldEncrypt() bool {
 	return false
+}
+
+func (self *Hello) serializationExtraData() []byte {
+	res := make([]byte, 0, 32)
+	vlen := len(self.GolemMessagesVersion)
+	res = append(res, byte(vlen))
+	res = append(res, []byte(self.GolemMessagesVersion)...)
+	res = append(res, make([]byte, 31-vlen)...)
+	return res
 }
 
 type RandVal struct {

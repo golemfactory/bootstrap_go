@@ -9,7 +9,7 @@ import (
 	"github.com/ethereum/go-ethereum/crypto/secp256k1"
 	"github.com/golemfactory/bootstrap_go/crypto"
 	"github.com/golemfactory/bootstrap_go/message"
-	"github.com/golemfactory/bootstrap_go/peerkeeper"
+	"github.com/golemfactory/bootstrap_go/python"
 	"golang.org/x/crypto/sha3"
 )
 
@@ -17,7 +17,7 @@ type PeerSession struct {
 	service *Service
 	conn    net.Conn
 	pubKey  crypto.PublicKey
-	peer    peerkeeper.Peer
+	peer    python.Peer
 	id      string
 }
 
@@ -68,7 +68,9 @@ func (session *PeerSession) performHandshake() error {
 		return fmt.Errorf("not matching protocol ID, remote %v, local %v", helloMsg.ProtoId, session.service.config.ProtocolId)
 	}
 
-	pubKeyBytes, err := hex.DecodeString(helloMsg.NodeInfo.Key)
+	nodeInfo := python.DictToNode(helloMsg.NodeInfo)
+
+	pubKeyBytes, err := hex.DecodeString(nodeInfo.Key)
 	if err != nil {
 		return fmt.Errorf("couldn't decode remote public key: %v", err)
 	}
@@ -114,10 +116,10 @@ func (session *PeerSession) performHandshake() error {
 		return err
 	}
 
-	session.peer = peerkeeper.Peer{
+	session.peer = python.Peer{
 		Address:  addr,
 		Port:     helloMsg.Port,
-		Node:     helloMsg.NodeInfo,
+		Node:     nodeInfo,
 		NodeName: helloMsg.NodeName,
 	}
 	session.id = helloMsg.ClientKeyId
@@ -137,7 +139,7 @@ func (session *PeerSession) handle() error {
 		Peers: make([]interface{}, len(peers)),
 	}
 	for idx, p := range peers {
-		peersMsg.Peers[idx] = p
+		peersMsg.Peers[idx] = p.ToDict()
 	}
 	err = session.sendMessage(peersMsg)
 	if err != nil {

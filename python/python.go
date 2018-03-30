@@ -1,11 +1,27 @@
 package python
 
-import (
-	"io"
+import "reflect"
 
-	"github.com/golemfactory/bootstrap_go/cbor"
-	cborimpl "github.com/whyrusleeping/cbor/go"
-)
+type serializableToDict interface {
+	ToDict() map[interface{}]interface{}
+}
+
+func toDict(obj interface{}) map[interface{}]interface{} {
+	m := map[interface{}]interface{}{}
+	v := reflect.ValueOf(obj).Elem()
+	for i := 0; i < v.NumField(); i++ {
+		field := v.Type().Field(i)
+		tag := field.Tag.Get("pyobj")
+		if tag != "" {
+			val := v.Field(i).Interface()
+			if serializableVal, ok := val.(serializableToDict); ok {
+				val = serializableVal.ToDict()
+			}
+			m[tag] = val
+		}
+	}
+	return m
+}
 
 type Node struct {
 	NodeName     string        `pyobj:"node_name"`
@@ -20,14 +36,33 @@ type Node struct {
 	NatType      string        `pyobj:"nat_type"`
 }
 
-func (self *Node) GetPyObjectName() string {
-	return "golem.network.p2p.node.Node"
+func (self *Node) ToDict() map[interface{}]interface{} {
+	return toDict(self)
 }
 
-func (self *Node) ToCBOR(w io.Writer, enc *cborimpl.Encoder) error {
-	return cbor.ToCBOR(self, w, enc)
+func DictToNode(m map[interface{}]interface{}) *Node {
+	res := &Node{}
+	elem := reflect.ValueOf(res).Elem()
+	for i := 0; i < elem.NumField(); i++ {
+		field := elem.Type().Field(i)
+		val := elem.Field(i)
+		tag := field.Tag.Get("pyobj")
+		if tag != "" {
+			if vv, ok := m[tag]; ok && vv != nil {
+				val.Set(reflect.ValueOf(vv))
+			}
+		}
+	}
+	return res
 }
 
-func init() {
-	cbor.RegisterPythonType("golem.network.p2p.node.Node", func() interface{} { return &Node{} })
+type Peer struct {
+	Address  string `pyobj:"address"`
+	Port     uint64 `pyobj:"port"`
+	Node     *Node  `pyobj:"node"`
+	NodeName string `pyobj:"node_name"`
+}
+
+func (self *Peer) ToDict() map[interface{}]interface{} {
+	return toDict(self)
 }

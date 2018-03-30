@@ -2,6 +2,8 @@ package peerkeeper
 
 import (
 	"testing"
+
+	"github.com/golemfactory/bootstrap_go/python"
 )
 
 func TestRandomizedPeerKeeper(t *testing.T) {
@@ -11,14 +13,14 @@ func TestRandomizedPeerKeeper(t *testing.T) {
 		t.Errorf("Expected empty list of peers, got %v", peers)
 	}
 
-	peer1 := Peer{NodeName: "peer1"}
+	peer1 := python.Peer{NodeName: "peer1"}
 	pk.AddPeer("peer1", peer1)
 	peers = pk.GetPeers("foo")
 	if len(peers) != 1 || peers[0].NodeName != "peer1" {
 		t.Errorf("Expected peer1, got %v", peers)
 	}
 
-	peer2 := Peer{NodeName: "peer2"}
+	peer2 := python.Peer{NodeName: "peer2"}
 	pk.AddPeer("peer2", peer2)
 	peers = pk.GetPeers("foo")
 	if len(peers) != 2 {
@@ -30,7 +32,7 @@ func TestRandomizedPeerKeeper(t *testing.T) {
 		t.Errorf("Expected peer1, got %v", peers)
 	}
 
-	peer3 := Peer{NodeName: "peer3"}
+	peer3 := python.Peer{NodeName: "peer3"}
 	pk.AddPeer("peer3", peer3)
 	peers = pk.GetPeers("foo")
 	if len(peers) != 2 {
