@@ -67,8 +67,9 @@ func main() {
 	}
 
 	rand.Seed(time.Now().UTC().UnixNano())
-	privKey := crypto.GeneratePrivateKey(KEY_DIFF)
-	if privKey == nil {
+	privKey, err := crypto.GenerateDifficultKey(KEY_DIFF)
+	if err != nil {
+		fmt.Println("Error while generating private key", err)
 		return
 	}
 	pubKeyHex := crypto.GetPubKeyHex(privKey)

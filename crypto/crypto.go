@@ -7,8 +7,6 @@ import (
 	"encoding/binary"
 	"encoding/hex"
 	"errors"
-	"fmt"
-	"io/ioutil"
 	"math/rand"
 
 	"github.com/ishbir/elliptic"
@@ -22,38 +20,45 @@ func GetPubKeyHex(privateKey PrivateKey) string {
 	return hex.EncodeToString(privKey.PublicKey.X) + hex.EncodeToString(privKey.PublicKey.Y)
 }
 
-func GeneratePrivateKey(difficulty int) PrivateKey {
+func GeneratePrivateKey() (PrivateKey, error) {
+	return elliptic.GeneratePrivateKey(elliptic.Secp256k1)
+}
+
+func GenerateDifficultKey(difficulty uint) (PrivateKey, error) {
 	for true {
-		privKey, err := elliptic.GeneratePrivateKey(elliptic.Secp256k1)
+		privKey, err := GeneratePrivateKey()
 		if err != nil {
-			fmt.Println("Error while generating private key", err)
-			return nil
+			return privKey, err
 		}
 
-		xPart := make([]byte, len(privKey.PublicKey.X))
-		copy(xPart, privKey.PublicKey.X)
-		pubKey := sha256.Sum256(append(xPart, privKey.PublicKey.Y...))
-
-		nullBytes := difficulty / 8
-		remainder := uint(difficulty % 8)
-		isDifficult := true
-
-		for i := 0; i < nullBytes; i++ {
-			if pubKey[i] != 0 {
-				isDifficult = false
-				break
-			}
-		}
-
-		if isDifficult {
-			if pubKey[nullBytes] < (1 << (8 - remainder)) {
-				keyData := GetPubKeyHex(privKey)
-				ioutil.WriteFile("identity", []byte(keyData), 0600)
-				return privKey
-			}
+		if isDifficult(privKey, difficulty) {
+			return privKey, nil
 		}
 	}
-	return nil
+	return nil, nil
+}
+
+func isDifficult(key PrivateKey, difficulty uint) bool {
+	xPart := make([]byte, len(key.PublicKey.X))
+	copy(xPart, key.PublicKey.X)
+	pubKey := sha256.Sum256(append(xPart, key.PublicKey.Y...))
+
+	nullBytes := difficulty / 8
+	remainder := uint(difficulty % 8)
+	isDifficult := true
+
+	for i := uint(0); i < nullBytes; i++ {
+		if pubKey[i] != 0 {
+			isDifficult = false
+			break
+		}
+	}
+
+	if isDifficult && pubKey[nullBytes] < (1<<(8-remainder)) {
+		return true
+	}
+
+	return false
 }
 
 func PublicKeyFromBytes(b []byte) (PublicKey, error) {
