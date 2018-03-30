@@ -10,6 +10,7 @@ import (
 	"github.com/golemfactory/bootstrap_go"
 	"github.com/golemfactory/bootstrap_go/crypto"
 	"github.com/golemfactory/bootstrap_go/peerkeeper"
+	"github.com/ishbir/elliptic"
 
 	"github.com/ccding/go-stun/stun"
 )
@@ -67,10 +68,21 @@ func main() {
 	}
 
 	rand.Seed(time.Now().UTC().UnixNano())
-	privKey, err := crypto.GenerateDifficultKey(KEY_DIFF)
-	if err != nil {
-		fmt.Println("Error while generating private key", err)
-		return
+
+	privKey := &elliptic.PrivateKey{}
+	key, err := crypto.LoadKey("identity")
+	fmt.Println("Privkey ", privKey)
+	fmt.Println("Loaded key", key)
+	if err == nil {
+		privKey = key
+	} else {
+		privKey, err = crypto.GenerateDifficultKey(KEY_DIFF)
+		fmt.Println("Key generated", privKey)
+		if err != nil {
+			fmt.Println("Error while generating private key", err)
+			return
+		}
+		crypto.SaveKey(privKey, "identity")
 	}
 	pubKeyHex := crypto.GetPubKeyHex(privKey)
 

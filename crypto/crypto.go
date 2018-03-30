@@ -7,7 +7,11 @@ import (
 	"encoding/binary"
 	"encoding/hex"
 	"errors"
+	"fmt"
+	"io"
+	"io/ioutil"
 	"math/rand"
+	"os"
 
 	"github.com/ishbir/elliptic"
 )
@@ -28,10 +32,12 @@ func GenerateDifficultKey(difficulty uint) (PrivateKey, error) {
 	for true {
 		privKey, err := GeneratePrivateKey()
 		if err != nil {
+			fmt.Println(err)
 			return privKey, err
 		}
 
 		if isDifficult(privKey, difficulty) {
+			fmt.Println("Generated key", privKey)
 			return privKey, nil
 		}
 	}
@@ -59,6 +65,32 @@ func isDifficult(key PrivateKey, difficulty uint) bool {
 	}
 
 	return false
+}
+
+func SaveKey(privKey PrivateKey, file string) {
+	keyData := privKey.Serialize()
+	ioutil.WriteFile(file, keyData, 0600)
+	fmt.Println("Key saved", keyData)
+}
+
+func LoadKey(file string) (PrivateKey, error) {
+	buf := make([]byte, 70)
+	fd, err := os.Open(file)
+	if err != nil {
+		fmt.Println("No key file")
+		return nil, err
+	}
+	defer fd.Close()
+	if _, err := io.ReadFull(fd, buf); err != nil {
+		return nil, err
+	}
+	key, err := elliptic.PrivateKeyFromBytes(buf)
+	if err != nil {
+		return nil, err
+	}
+
+	fmt.Println("Key loaded", key)
+	return key, nil
 }
 
 func PublicKeyFromBytes(b []byte) (PublicKey, error) {
