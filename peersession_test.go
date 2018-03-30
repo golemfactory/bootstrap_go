@@ -166,20 +166,20 @@ func testPeerSessionImpl(t *testing.T, handleCh chan error) {
 	}
 	serverPeers := msg.(*message.Peers)
 	if len(serverPeers.Peers) != 0 {
-		t.Errorf("Expected empty list of peers, got %+v", serverPeers.Peers)
+		t.Fatalf("Expected empty list of peers, got %+v", serverPeers.Peers)
 	}
 
 	if len(pk.GetPeersCalls) != 1 {
-		t.Error("GetPeers should be called once, was called:", len(pk.GetPeersCalls))
+		t.Fatal("GetPeers should be called once, was called:", len(pk.GetPeersCalls))
 	}
 	if pk.GetPeersCalls[0].Id != CLIENT_ID {
-		t.Error("GetPeers was called with wrong Id:", pk.GetPeersCalls[0].Id)
+		t.Fatal("GetPeers was called with wrong Id:", pk.GetPeersCalls[0].Id)
 	}
 	if len(pk.AddPeerCalls) != 1 {
-		t.Error("AddPeer should be called once, was called:", len(pk.AddPeerCalls))
+		t.Fatal("AddPeer should be called once, was called:", len(pk.AddPeerCalls))
 	}
 	if pk.AddPeerCalls[0].Id != CLIENT_ID {
-		t.Error("AddPeer was called with wrong Id:", pk.AddPeerCalls[0].Id)
+		t.Fatal("AddPeer was called with wrong Id:", pk.AddPeerCalls[0].Id)
 	}
 }
 

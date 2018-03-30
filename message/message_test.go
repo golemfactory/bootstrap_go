@@ -49,7 +49,7 @@ func testImpl(t *testing.T, msg Message) Message {
 
 	baseMsg := deserialized.GetBaseMessage()
 	if baseMsg.Header.Type != msg.GetType() {
-		t.Error("Wrong message type, expected %v, got %v", msg.GetType(), baseMsg.Header.Type)
+		t.Errorf("Wrong message type, expected %v, got %v", msg.GetType(), baseMsg.Header.Type)
 	}
 	if baseMsg.Header.Encrypted != msg.ShouldEncrypt() {
 		t.Errorf("Expected encrypted field to be: %v, got: %v", msg.ShouldEncrypt(), baseMsg.Header.Encrypted)
