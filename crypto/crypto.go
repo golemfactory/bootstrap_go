@@ -25,7 +25,10 @@ func GeneratePrivateKey() (PrivateKey, error) {
 }
 
 func GenerateDifficultKey(difficulty uint) (PrivateKey, error) {
-	for true {
+	if difficulty > 256 {
+		return nil, errors.New("difficulty too high")
+	}
+	for {
 		privKey, err := GeneratePrivateKey()
 		if err != nil {
 			return privKey, err
@@ -45,20 +48,14 @@ func isDifficult(key PrivateKey, difficulty uint) bool {
 
 	nullBytes := difficulty / 8
 	remainder := uint(difficulty % 8)
-	isDifficult := true
 
 	for i := uint(0); i < nullBytes; i++ {
 		if pubKey[i] != 0 {
-			isDifficult = false
-			break
+			return false
 		}
 	}
 
-	if isDifficult && pubKey[nullBytes] < (1<<(8-remainder)) {
-		return true
-	}
-
-	return false
+	return pubKey[nullBytes] < (1<<(8-remainder))
 }
 
 func PublicKeyFromBytes(b []byte) (PublicKey, error) {
