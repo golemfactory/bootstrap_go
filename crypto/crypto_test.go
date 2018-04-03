@@ -63,7 +63,7 @@ func TestKeyDifficulty(t *testing.T) {
 	}
 
 	_, err = GenerateDifficultKey(257)
-	if err.Error() != "Difficulty to high" {
+	if err.Error() != "difficulty too high" {
 		t.Fatal("Wrong error type")
 	}
 }
