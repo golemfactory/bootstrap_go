@@ -3,10 +3,10 @@ package main
 import (
 	"flag"
 	"fmt"
+	"log"
 	"math/rand"
 	"net"
 	"time"
-	"log"
 
 	"github.com/golemfactory/bootstrap_go"
 	"github.com/golemfactory/bootstrap_go/crypto"
@@ -84,6 +84,7 @@ func main() {
 		PrvAddresses:         prvAddresses,
 		NatType:              nat.String(),
 		PeerNum:              PEER_NUM,
+		KeyDifficulty:        KEY_DIFF,
 		ProtocolId:           protocolId,
 		GolemMessagesVersion: golemMessagesVersion,
 		GolemVersion:         golemVersion,

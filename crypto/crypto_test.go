@@ -33,13 +33,9 @@ func TestEncryptDecrypt(t *testing.T) {
 }
 
 func TestKeyDifficulty(t *testing.T) {
-	rand.Seed(42)
-	privKey, err := GeneratePrivateKey()
-	if err != nil {
-		t.Fatal(err)
-	}
-	if isDifficult(privKey, 14) {
-		t.Fatal("Key should not be difficult", privKey)
+	_, err := GenerateDifficultKey(257)
+	if err.Error() != "difficulty too high" {
+		t.Error("Wrong error message:", err)
 	}
 
 	curve := elliptic.Curve(714)
@@ -52,18 +48,7 @@ func TestKeyDifficulty(t *testing.T) {
 		Y:     Y,
 	}
 
-	keyBytes := []byte{101, 246, 152, 59, 105, 91, 131, 245, 82, 171, 218, 172, 7, 89, 43, 180, 141, 2, 231, 246, 17, 99, 43, 49, 172, 164, 133, 251, 161, 232, 163, 83}
-	key := &elliptic.PrivateKey{
-		PublicKey: *pubKey,
-		Key:       keyBytes,
-	}
-
-	if !isDifficult(key, 14) {
-		t.Fatal("Key should be difficult", key)
-	}
-
-	_, err = GenerateDifficultKey(257)
-	if err.Error() != "difficulty too high" {
-		t.Fatal("Wrong error type")
+	if GetKeyDifficulty(pubKey) == 14 {
+		t.Error("Key should be difficult", pubKey)
 	}
 }

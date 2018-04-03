@@ -248,6 +248,7 @@ const (
 	DISCONNECT_PROTOCOL_VERSION DisconnectReason = "protocol_version"
 	DISCONNECT_UNVERIFIED       DisconnectReason = "unverified"
 	DISCONNECT_BOOTSTRAP        DisconnectReason = "bootstrap"
+	DISCONNECT_KEY_DIFFICULTY   DisconnectReason = "key_not_difficult"
 )
 
 type Disconnect struct {
