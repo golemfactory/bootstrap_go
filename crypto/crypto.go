@@ -7,6 +7,7 @@ import (
 	"encoding/binary"
 	"encoding/hex"
 	"errors"
+	"math/bits"
 	"math/rand"
 
 	"github.com/ishbir/elliptic"
@@ -34,28 +35,26 @@ func GenerateDifficultKey(difficulty uint) (PrivateKey, error) {
 			return privKey, err
 		}
 
-		if isDifficult(privKey, difficulty) {
+		if GetKeyDifficulty(&privKey.PublicKey) >= int(difficulty) {
 			return privKey, nil
 		}
 	}
 	return nil, nil
 }
 
-func isDifficult(key PrivateKey, difficulty uint) bool {
-	xPart := make([]byte, len(key.PublicKey.X))
-	copy(xPart, key.PublicKey.X)
-	pubKey := sha256.Sum256(append(xPart, key.PublicKey.Y...))
+func GetKeyDifficulty(key PublicKey) int {
+	pubKeyBytes := make([]byte, 0, 32)
+	pubKeyBytes = append(pubKeyBytes, key.X...)
+	pubKeyBytes = append(pubKeyBytes, key.Y...)
+	hash := sha256.Sum256(pubKeyBytes)
 
-	nullBytes := difficulty / 8
-	remainder := uint(difficulty % 8)
-
-	for i := uint(0); i < nullBytes; i++ {
-		if pubKey[i] != 0 {
-			return false
+	for i := 0; i < len(pubKeyBytes); i++ {
+		if hash[i] != 0 {
+			return i*8 + bits.LeadingZeros8(hash[i])
 		}
 	}
 
-	return pubKey[nullBytes] < (1<<(8-remainder))
+	return 8 * len(pubKeyBytes)
 }
 
 func PublicKeyFromBytes(b []byte) (PublicKey, error) {

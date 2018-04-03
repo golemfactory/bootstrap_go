@@ -78,6 +78,13 @@ func (session *PeerSession) performHandshake() error {
 	if err != nil {
 		return fmt.Errorf("couldn't create remote public key: %v", err)
 	}
+	keyDifficulty := crypto.GetKeyDifficulty(session.pubKey)
+	if keyDifficulty < session.service.config.KeyDifficulty {
+		if err := session.sendDisconnect(message.DISCONNECT_KEY_DIFFICULTY); err != nil {
+			return err
+		}
+		return fmt.Errorf("key not difficult enough, got %v", keyDifficulty)
+	}
 
 	msg, err = session.receiveMessage()
 	if err != nil {

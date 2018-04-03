@@ -21,6 +21,7 @@ type Config struct {
 	PrvAddresses         []interface{}
 	NatType              string
 	PeerNum              int
+	KeyDifficulty        int
 	ProtocolId           string
 	GolemMessagesVersion string
 	GolemVersion         string

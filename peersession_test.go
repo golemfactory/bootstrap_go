@@ -1,7 +1,6 @@
 package bootstrap
 
 import (
-	"encoding/hex"
 	"math/rand"
 	"net"
 	"testing"
@@ -68,22 +67,23 @@ func (pk *TestPeerKeeper) GetPeers(id string) []python.Peer {
 	return nil
 }
 
-func getService(t *testing.T, pk peerkeeper.PeerKeeper) *Service {
+func getService(t *testing.T, pk peerkeeper.PeerKeeper, keyDifficulty int) *Service {
 	privKey, err := crypto.GeneratePrivateKey()
 	if err != nil {
 		t.Fatal("Error while generating private key", err)
 	}
 
 	config := &Config{
-		Name:         TEST_NAME,
-		Id:           "deadbeef",
-		Port:         44444,
-		PrvAddr:      "prvAddr",
-		PubAddr:      "pubAddr",
-		PrvAddresses: nil,
-		NatType:      "nat type",
-		PeerNum:      100,
-		ProtocolId:   TEST_PROTO_ID,
+		Name:          TEST_NAME,
+		Id:            "deadbeef",
+		Port:          44444,
+		PrvAddr:       "prvAddr",
+		PubAddr:       "pubAddr",
+		PrvAddresses:  nil,
+		NatType:       "nat type",
+		PeerNum:       100,
+		KeyDifficulty: keyDifficulty,
+		ProtocolId:    TEST_PROTO_ID,
 	}
 
 	return NewService(config, privKey, pk)
@@ -99,10 +99,10 @@ func testPeerSessionImpl(t *testing.T, handleCh chan error) {
 	if err != nil {
 		t.Fatal("Error while generating private key", err)
 	}
-	pubKeyHex := hex.EncodeToString(privKey.PublicKey.X) + hex.EncodeToString(privKey.PublicKey.Y)
+	pubKeyHex := crypto.GetPubKeyHex(privKey)
 
 	pk := &TestPeerKeeper{}
-	service := getService(t, pk)
+	service := getService(t, pk, 0)
 	conn, psConn := net.Pipe()
 	ps := NewPeerSession(service, &TestConn{Conn: psConn})
 	go func() {
@@ -197,5 +197,56 @@ func TestPeerSession(t *testing.T) {
 		t.Fatal(err)
 	case <-time.After(time.Second):
 		t.Fatal("Test timed out")
+	}
+}
+
+func TestDisconnectKeyDifficulty(t *testing.T) {
+	rand.Seed(42)
+	privKey, err := crypto.GeneratePrivateKey()
+	if err != nil {
+		t.Fatal("Error while generating private key", err)
+	}
+	pubKeyHex := crypto.GetPubKeyHex(privKey)
+
+	pk := &TestPeerKeeper{}
+	service := getService(t, pk, 100)
+	conn, psConn := net.Pipe()
+	ps := NewPeerSession(service, &TestConn{Conn: psConn})
+	go func() {
+		ps.handle()
+	}()
+
+	signFunc := func(msg message.Message) {
+		sig, _ := secp256k1.Sign(GetShortHashSha(msg), privKey.Key)
+		msg.GetBaseMessage().Sig = sig
+	}
+
+	msg, err := message.Receive(conn, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	node := python.Node{
+		Key: pubKeyHex,
+	}
+	hello := &message.Hello{
+		NodeInfo: node.ToDict(),
+		ProtoId:  TEST_PROTO_ID,
+	}
+	err = message.Send(conn, hello, nil, signFunc)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	msg, err = message.Receive(conn, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if msg.GetType() != message.MSG_DISCONNECT_TYPE {
+		t.Fatal("Wrong msg type, expected disconnect, got", msg.GetType())
+	}
+	disconnectMsg := msg.(*message.Disconnect)
+	if disconnectMsg.Reason != "key_not_difficult" {
+		t.Error("Expected reason `key_not_difficult`, got", disconnectMsg.Reason)
 	}
 }
