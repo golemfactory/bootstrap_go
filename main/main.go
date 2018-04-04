@@ -21,7 +21,7 @@ const (
 	NAME                   = "Go Bootstrap"
 	PROTO_ID               = "26"
 	GOLEM_MESSAGES_VERSION = "1.17.2"
-	GOLEM_VERSION          = "0.14.0"
+	GOLEM_VERSION          = "0.15.0"
 	KEY_DIFF               = 14
 )
 
