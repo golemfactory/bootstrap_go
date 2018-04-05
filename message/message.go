@@ -122,10 +122,14 @@ func Deserialize(b []byte, decrypt DecryptFunc) (Message, error) {
 		}
 	}
 
-	var slots MessagePayload
-	err = cbor.Deserialize(payloadB, &slots)
+	var maybeSlots interface{}
+	err = cbor.Deserialize(payloadB, &maybeSlots)
 	if err != nil {
 		return nil, err
+	}
+	slots, ok := maybeSlots.(MessagePayload)
+	if !ok {
+		return nil, fmt.Errorf("incorrect format of message payload")
 	}
 	deserializePayload(slots, msg)
 	return msg, nil
@@ -139,7 +143,11 @@ func deserializePayload(slotsList MessagePayload, msg Message) {
 			fmt.Printf("Couldn't cast slot %+v\n", s)
 			continue
 		}
-		slots[slot[0].(string)] = slot[1]
+		if slotName, ok := slot[0].(string); ok {
+			slots[slotName] = slot[1]
+		} else {
+			fmt.Printf("Expected slot name to be a string, got %+v", slot[0])
+		}
 	}
 
 	v := reflect.ValueOf(msg).Elem()
