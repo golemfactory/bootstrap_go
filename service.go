@@ -57,11 +57,12 @@ func (s *Service) Listen() error {
 			fmt.Println("Error accepting: ", err)
 		} else {
 			go func() {
+				fmt.Println("Peer connection from", conn.RemoteAddr())
 				ps := NewPeerSession(s, conn)
 				err := ps.handle()
 				ps.Close()
 				if err != nil {
-					fmt.Println("Peer session error:", err)
+					fmt.Printf("Peer session (%v) error: %v\n", conn.RemoteAddr(), err)
 				}
 			}()
 		}

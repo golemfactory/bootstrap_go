@@ -134,7 +134,6 @@ func (session *PeerSession) performHandshake() error {
 }
 
 func (session *PeerSession) handle() error {
-	fmt.Println("Peer connection from", session.conn.RemoteAddr())
 	err := session.performHandshake()
 	if err != nil {
 		return err
