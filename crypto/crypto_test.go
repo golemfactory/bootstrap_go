@@ -10,20 +10,20 @@ import (
 
 func TestEncryptDecrypt(t *testing.T) {
 	rand.Seed(42)
-	privKey1, err := elliptic.GeneratePrivateKey(elliptic.Secp256k1)
+	privKey1, err := GeneratePrivateKey()
 	if err != nil {
 		t.Fatal(err)
 	}
-	privKey2, err := elliptic.GeneratePrivateKey(elliptic.Secp256k1)
+	privKey2, err := GeneratePrivateKey()
 	if err != nil {
 		t.Fatal(err)
 	}
 	data := []byte("asdf")
-	encrytped, err := EncryptPython(privKey1, data, &privKey2.PublicKey)
+	encrytped, err := privKey1.EncryptPython(data, privKey2.GetPublicKey())
 	if err != nil {
 		t.Fatal(err)
 	}
-	decrypted, err := DecryptPython(privKey2, encrytped)
+	decrypted, err := privKey2.DecryptPython(encrytped)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -48,7 +48,7 @@ func TestKeyDifficulty(t *testing.T) {
 		Y:     Y,
 	}
 
-	if GetKeyDifficulty(pubKey) == 14 {
+	if getKeyDifficulty(pubKey) == 14 {
 		t.Error("Key should be difficult", pubKey)
 	}
 }

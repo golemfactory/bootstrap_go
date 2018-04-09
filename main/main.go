@@ -73,7 +73,7 @@ func main() {
 		log.Println("Error while generating private key", err)
 		return
 	}
-	pubKeyHex := crypto.GetPubKeyHex(privKey)
+	pubKeyHex := privKey.GetPubKeyHex()
 
 	config := &bootstrap.Config{
 		Name:                 name,
