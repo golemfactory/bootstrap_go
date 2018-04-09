@@ -2,16 +2,12 @@ version: 2
 jobs:
   build:
     docker:
-      - image: circleci/golang:1.9
+      - image: igorgolem/bootstrap_go
 
     working_directory: /go/src/github.com/golemfactory/bootstrap_go
 
     steps:
       - checkout
-
-      - run:
-          name: OpenSSL
-          command: curl https://www.openssl.org/source/openssl-1.0.2f.tar.gz | tar xz && cd openssl-1.0.2f && sudo ./config --prefix=/usr --shared && sudo make && sudo make install
 
       - run: go get -v -t ./...
       - run: go test -v ./...
