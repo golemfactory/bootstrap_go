@@ -32,14 +32,13 @@ func GenerateDifficultKey(difficulty uint) (PrivateKey, error) {
 	for {
 		privKey, err := GeneratePrivateKey()
 		if err != nil {
-			return privKey, err
+			return nil, err
 		}
 
 		if GetKeyDifficulty(&privKey.PublicKey) >= int(difficulty) {
 			return privKey, nil
 		}
 	}
-	return nil, nil
 }
 
 func GetKeyDifficulty(key PublicKey) int {

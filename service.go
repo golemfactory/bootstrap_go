@@ -67,7 +67,6 @@ func (s *Service) Listen() error {
 			}()
 		}
 	}
-	return nil
 }
 
 func (s *Service) genHello() *message.Hello {
