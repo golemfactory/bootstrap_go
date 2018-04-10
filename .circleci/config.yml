@@ -1,0 +1,14 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: circleci/golang:1.9
+
+    working_directory: /go/src/github.com/golemfactory/bootstrap_go
+
+    steps:
+      - checkout
+
+      - run: go get -v -t ./...
+      - run: go test -v -race ./...
+      - run: go vet -v ./...
