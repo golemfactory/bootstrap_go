@@ -166,6 +166,15 @@ func testPeerSessionImpl(t *testing.T, handleCh chan error) {
 		t.Fatalf("Expected empty list of peers, got %+v", serverPeers.Peers)
 	}
 
+	msg, err = message.Receive(conn, decryptFunc)
+	if err != nil {
+		t.Fatal(err)
+	}
+	disconnect := msg.(*message.Disconnect)
+	if disconnect.Reason != message.DISCONNECT_BOOTSTRAP {
+		t.Fatal("Expected disconnect bootstrap, got:", disconnect.Reason)
+	}
+
 	if len(pk.GetPeersCalls) != 1 {
 		t.Fatal("GetPeers should be called once, was called:", len(pk.GetPeersCalls))
 	}
