@@ -11,5 +11,5 @@ func Encrypt(data []byte, pubKey PublicKey) ([]byte, error) {
 }
 
 func (self *PrivateKey) Decrypt(raw []byte) ([]byte, error) {
-	return self.key.Decrypt(rand.Reader, raw, nil, nil)
+	return self.key.Decrypt(raw, nil, nil)
 }
