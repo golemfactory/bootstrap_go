@@ -16,18 +16,18 @@ type PrivateKey struct {
 	key *ecies.PrivateKey
 }
 
-type PublicKey struct {
-	key *ecies.PublicKey
-}
-
 func (self *PrivateKey) GetPublicKey() PublicKey {
 	return PublicKey{
 		&self.key.PublicKey,
 	}
 }
 
-func (self *PrivateKey) GetPubKeyHex() string {
-	return self.key.PublicKey.X.Text(16) + self.key.PublicKey.Y.Text(16)
+type PublicKey struct {
+	key *ecies.PublicKey
+}
+
+func (self *PublicKey) Hex() string {
+	return fmt.Sprintf("%064s%064s", self.key.X.Text(16), self.key.Y.Text(16))
 }
 
 func PublicKeyFromBytes(b []byte) (key PublicKey, err error) {

@@ -73,11 +73,11 @@ func main() {
 		log.Println("Error while generating private key", err)
 		return
 	}
-	pubKeyHex := privKey.GetPubKeyHex()
+	pubKey := privKey.GetPublicKey()
 
 	config := &bootstrap.Config{
 		Name:                 name,
-		Id:                   pubKeyHex,
+		Id:                   pubKey.Hex(),
 		Port:                 port,
 		PrvAddr:              prvAddresses[0].(string),
 		PubAddr:              host.IP(),

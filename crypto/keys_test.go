@@ -7,6 +7,7 @@ import (
 	"github.com/ethereum/go-ethereum/crypto/ecies"
 	"github.com/ethereum/go-ethereum/crypto/secp256k1"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestKeyDifficulty(t *testing.T) {
@@ -24,4 +25,20 @@ func TestKeyDifficulty(t *testing.T) {
 	}
 
 	assert.Equal(t, 18, getKeyDifficulty(pubKey))
+}
+
+func TestPublicKeyHex(t *testing.T) {
+	pubKey := &ecies.PublicKey{
+		Curve: secp256k1.S256(),
+		X:     new(big.Int),
+		Y:     new(big.Int),
+	}
+	_, ok := pubKey.X.SetString("413948280899852118482748229132309424713966529587595585748106469290859442165", 10)
+	require.True(t, ok)
+	_, ok = pubKey.Y.SetString("68586480335090537784423010349535964989539087847494459304095557215436234524160", 10)
+	require.True(t, ok)
+	key := PublicKey{
+		key: pubKey,
+	}
+	assert.Equal(t, 128, len(key.Hex()))
 }

@@ -34,7 +34,8 @@ type Service struct {
 }
 
 func NewService(config *Config, privKey crypto.PrivateKey, pk peerkeeper.PeerKeeper) *Service {
-	pubKeyHex := privKey.GetPubKeyHex()
+	pubKey := privKey.GetPublicKey()
+	pubKeyHex := pubKey.Hex()
 	return &Service{
 		config:     config,
 		privKey:    privKey,

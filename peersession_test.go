@@ -96,7 +96,8 @@ func testPeerSessionImpl(t *testing.T, handleCh chan error) {
 	)
 	privKey, err := crypto.GeneratePrivateKey()
 	require.NoError(t, err)
-	pubKeyHex := privKey.GetPubKeyHex()
+	pubKey := privKey.GetPublicKey()
+	pubKeyHex := pubKey.Hex()
 
 	pk := &TestPeerKeeper{}
 	service := getService(t, pk, 0)
@@ -172,7 +173,7 @@ func TestPeerSession(t *testing.T) {
 	select {
 	case <-testCh:
 	case err := <-handleCh:
-		t.Fatal(err)
+		assert.NoError(t, err)
 	case <-time.After(time.Second):
 		t.Fatal("Test timed out")
 	}
@@ -181,7 +182,8 @@ func TestPeerSession(t *testing.T) {
 func TestDisconnectKeyDifficulty(t *testing.T) {
 	privKey, err := crypto.GeneratePrivateKey()
 	require.NoError(t, err)
-	pubKeyHex := privKey.GetPubKeyHex()
+	pubKey := privKey.GetPublicKey()
+	pubKeyHex := pubKey.Hex()
 
 	pk := &TestPeerKeeper{}
 	service := getService(t, pk, 100)
