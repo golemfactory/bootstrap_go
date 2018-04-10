@@ -9,6 +9,8 @@ import (
 	"github.com/golemfactory/bootstrap_go/message"
 	"github.com/golemfactory/bootstrap_go/peerkeeper"
 	"github.com/golemfactory/bootstrap_go/python"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 const (
@@ -93,9 +95,7 @@ func testPeerSessionImpl(t *testing.T, handleCh chan error) {
 		CLIENT_ID = "client-id"
 	)
 	privKey, err := crypto.GeneratePrivateKey()
-	if err != nil {
-		t.Fatal("Error while generating private key", err)
-	}
+	require.NoError(t, err)
 	pubKeyHex := privKey.GetPubKeyHex()
 
 	pk := &TestPeerKeeper{}
@@ -118,13 +118,9 @@ func testPeerSessionImpl(t *testing.T, handleCh chan error) {
 	}
 
 	msg, err := message.Receive(conn, nil)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	serverHello := msg.(*message.Hello)
-	if serverHello.NodeName != TEST_NAME {
-		t.Error("Wrong bootstrap node name:", serverHello.NodeName)
-	}
+	assert.Equal(t, TEST_NAME, serverHello.NodeName)
 
 	node := python.Node{
 		Key: pubKeyHex,
@@ -136,57 +132,33 @@ func testPeerSessionImpl(t *testing.T, handleCh chan error) {
 		ProtoId:     TEST_PROTO_ID,
 	}
 	err = message.Send(conn, hello, encryptFunc, signFunc)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	randVal := &message.RandVal{
 		RandVal: serverHello.RandVal,
 	}
 	err = message.Send(conn, randVal, encryptFunc, signFunc)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	msg, err = message.Receive(conn, decryptFunc)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	serverRandVal := msg.(*message.RandVal)
-	if serverRandVal.RandVal != RAND_VAL {
-		t.Fatal("Wrong RandVal", serverRandVal.RandVal)
-	}
+	assert.Equal(t, RAND_VAL, serverRandVal.RandVal)
 
 	msg, err = message.Receive(conn, decryptFunc)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	serverPeers := msg.(*message.Peers)
-	if len(serverPeers.Peers) != 0 {
-		t.Fatalf("Expected empty list of peers, got %+v", serverPeers.Peers)
-	}
+	assert.Equal(t, 0, len(serverPeers.Peers))
 
 	msg, err = message.Receive(conn, decryptFunc)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	disconnect := msg.(*message.Disconnect)
-	if disconnect.Reason != message.DISCONNECT_BOOTSTRAP {
-		t.Fatal("Expected disconnect bootstrap, got:", disconnect.Reason)
-	}
+	assert.Equal(t, message.DISCONNECT_BOOTSTRAP, disconnect.Reason)
 
-	if len(pk.GetPeersCalls) != 1 {
-		t.Fatal("GetPeers should be called once, was called:", len(pk.GetPeersCalls))
-	}
-	if pk.GetPeersCalls[0].Id != CLIENT_ID {
-		t.Fatal("GetPeers was called with wrong Id:", pk.GetPeersCalls[0].Id)
-	}
-	if len(pk.AddPeerCalls) != 1 {
-		t.Fatal("AddPeer should be called once, was called:", len(pk.AddPeerCalls))
-	}
-	if pk.AddPeerCalls[0].Id != CLIENT_ID {
-		t.Fatal("AddPeer was called with wrong Id:", pk.AddPeerCalls[0].Id)
-	}
+	require.Equal(t, 1, len(pk.GetPeersCalls))
+	assert.Equal(t, CLIENT_ID, pk.GetPeersCalls[0].Id)
+	require.Equal(t, 1, len(pk.AddPeerCalls))
+	assert.Equal(t, CLIENT_ID, pk.AddPeerCalls[0].Id)
 }
 
 func TestPeerSession(t *testing.T) {
@@ -208,9 +180,7 @@ func TestPeerSession(t *testing.T) {
 
 func TestDisconnectKeyDifficulty(t *testing.T) {
 	privKey, err := crypto.GeneratePrivateKey()
-	if err != nil {
-		t.Fatal("Error while generating private key", err)
-	}
+	require.NoError(t, err)
 	pubKeyHex := privKey.GetPubKeyHex()
 
 	pk := &TestPeerKeeper{}
@@ -227,9 +197,7 @@ func TestDisconnectKeyDifficulty(t *testing.T) {
 	}
 
 	msg, err := message.Receive(conn, nil)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	node := python.Node{
 		Key: pubKeyHex,
@@ -239,19 +207,12 @@ func TestDisconnectKeyDifficulty(t *testing.T) {
 		ProtoId:  TEST_PROTO_ID,
 	}
 	err = message.Send(conn, hello, nil, signFunc)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	msg, err = message.Receive(conn, nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if msg.GetType() != message.MSG_DISCONNECT_TYPE {
-		t.Fatal("Wrong msg type, expected disconnect, got", msg.GetType())
-	}
+	require.NoError(t, err)
+
+	require.Equal(t, message.MSG_DISCONNECT_TYPE, int(msg.GetType()))
 	disconnectMsg := msg.(*message.Disconnect)
-	if disconnectMsg.Reason != "key_not_difficult" {
-		t.Error("Expected reason `key_not_difficult`, got", disconnectMsg.Reason)
-	}
+	assert.Equal(t, message.DISCONNECT_KEY_DIFFICULTY, disconnectMsg.Reason)
 }

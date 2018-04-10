@@ -1,25 +1,19 @@
 package crypto
 
 import (
-	"bytes"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestEncryptDecrypt(t *testing.T) {
 	privKey, err := GeneratePrivateKey()
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	data := []byte("asdf")
 	encrypted, err := Encrypt(data, privKey.GetPublicKey())
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	decrypted, err := privKey.Decrypt(encrypted)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if !bytes.Equal(data, decrypted) {
-		t.Fatalf("Expected %v, got %v", data, decrypted)
-	}
+	require.NoError(t, err)
+	assert.Equal(t, data, decrypted)
 }

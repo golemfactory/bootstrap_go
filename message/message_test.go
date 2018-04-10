@@ -1,8 +1,10 @@
 package message
 
 import (
-	"bytes"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func testImpl(t *testing.T, msg Message) Message {
@@ -29,34 +31,18 @@ func testImpl(t *testing.T, msg Message) Message {
 	}
 
 	serialized, err := Serialize(msg, encryptFunc, signFunc)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if msg.ShouldEncrypt() != encryptCalled {
-		t.Errorf("Expected encrypt func called: %v, got: %v", msg.ShouldEncrypt(), encryptCalled)
-	}
-	if !signCalled {
-		t.Error("Sign function not called")
-	}
+	require.NoError(t, err)
+	assert.Equal(t, msg.ShouldEncrypt(), encryptCalled)
+	assert.True(t, signCalled)
 
 	deserialized, err := Deserialize(serialized, decryptFunc)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if msg.ShouldEncrypt() != decryptCalled {
-		t.Errorf("Expected decrypt func called: %v, got: %v", msg.ShouldEncrypt(), decryptCalled)
-	}
+	require.NoError(t, err)
+	assert.Equal(t, msg.ShouldEncrypt(), decryptCalled)
 
 	baseMsg := deserialized.GetBaseMessage()
-	if baseMsg.Header.Type != msg.GetType() {
-		t.Errorf("Wrong message type, expected %v, got %v", msg.GetType(), baseMsg.Header.Type)
-	}
-	if baseMsg.Header.Encrypted != msg.ShouldEncrypt() {
-		t.Errorf("Expected encrypted field to be: %v, got: %v", msg.ShouldEncrypt(), baseMsg.Header.Encrypted)
-	}
-	if !bytes.Equal(sig, baseMsg.Sig) {
-		t.Errorf("Wrong signature, expected %v, got %v", sig, baseMsg.Sig)
-	}
+	assert.Equal(t, msg.GetType(), baseMsg.Header.Type)
+	assert.Equal(t, msg.ShouldEncrypt(), baseMsg.Header.Encrypted)
+	assert.Equal(t, sig, baseMsg.Sig)
 	return deserialized
 }
 
@@ -65,18 +51,12 @@ func TestSerializeationEncrypted(t *testing.T) {
 	msg := &RandVal{
 		RandVal: RAND_VAL,
 	}
-	if !msg.ShouldEncrypt() {
-		t.Fatal("Tested message should be encryptable")
-	}
+	require.True(t, msg.ShouldEncrypt())
 	deserialized := testImpl(t, msg)
 
 	castedMsg, ok := deserialized.(*RandVal)
-	if !ok {
-		t.Fatal("Message should be of type MessageRandVal")
-	}
-	if castedMsg.RandVal != RAND_VAL {
-		t.Errorf("Wrong rand val, expected %v, got %v", RAND_VAL, castedMsg.RandVal)
-	}
+	require.True(t, ok)
+	assert.Equal(t, RAND_VAL, castedMsg.RandVal)
 }
 
 func TestSerializeationNotEncrypted(t *testing.T) {
@@ -84,16 +64,10 @@ func TestSerializeationNotEncrypted(t *testing.T) {
 	msg := &Disconnect{
 		Reason: REASON,
 	}
-	if msg.ShouldEncrypt() {
-		t.Fatal("Tested message shouldn't be encryptable")
-	}
+	require.False(t, msg.ShouldEncrypt())
 	deserialized := testImpl(t, msg)
 
 	castedMsg, ok := deserialized.(*Disconnect)
-	if !ok {
-		t.Fatal("Message should be of type MessageDisconnect")
-	}
-	if castedMsg.Reason != REASON {
-		t.Errorf("Wrong rand val, expected %v, got %v", REASON, castedMsg.Reason)
-	}
+	require.True(t, ok)
+	assert.Equal(t, REASON, castedMsg.Reason)
 }
