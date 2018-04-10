@@ -1,7 +1,6 @@
 package bootstrap
 
 import (
-	"math/rand"
 	"net"
 	"testing"
 	"time"
@@ -93,7 +92,6 @@ func testPeerSessionImpl(t *testing.T, handleCh chan error) {
 		RAND_VAL  = 0.1337
 		CLIENT_ID = "client-id"
 	)
-	rand.Seed(42)
 	privKey, err := crypto.GeneratePrivateKey()
 	if err != nil {
 		t.Fatal("Error while generating private key", err)
@@ -113,10 +111,10 @@ func testPeerSessionImpl(t *testing.T, handleCh chan error) {
 		msg.GetBaseMessage().Sig = sig
 	}
 	encryptFunc := func(data []byte) ([]byte, error) {
-		return privKey.EncryptPython(data, service.privKey.GetPublicKey())
+		return crypto.Encrypt(data, service.privKey.GetPublicKey())
 	}
 	decryptFunc := func(data []byte) ([]byte, error) {
-		return privKey.DecryptPython(data)
+		return privKey.Decrypt(data)
 	}
 
 	msg, err := message.Receive(conn, nil)
@@ -200,7 +198,6 @@ func TestPeerSession(t *testing.T) {
 }
 
 func TestDisconnectKeyDifficulty(t *testing.T) {
-	rand.Seed(42)
 	privKey, err := crypto.GeneratePrivateKey()
 	if err != nil {
 		t.Fatal("Error while generating private key", err)

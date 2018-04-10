@@ -102,8 +102,8 @@ func (session *PeerSession) performHandshake() error {
 		return fmt.Errorf("incorrect RandVal value")
 	}
 
-	signed, err := session.verifySign(randValMsg)
-	if !signed || err != nil {
+	signed := session.verifySign(randValMsg)
+	if !signed {
 		if err := session.sendDisconnect(message.DISCONNECT_UNVERIFIED); err != nil {
 			return err
 		}
@@ -177,7 +177,7 @@ func (session *PeerSession) sendMessage(msg message.Message) error {
 }
 
 func (session *PeerSession) decrypt(data []byte) ([]byte, error) {
-	res, err := session.service.privKey.DecryptPython(data)
+	res, err := session.service.privKey.Decrypt(data)
 	if err != nil {
 		return nil, fmt.Errorf("unable to decrypt message: %v", err)
 	}
@@ -185,7 +185,7 @@ func (session *PeerSession) decrypt(data []byte) ([]byte, error) {
 }
 
 func (session *PeerSession) encrypt(data []byte) ([]byte, error) {
-	res, err := session.service.privKey.EncryptPython(data, session.pubKey)
+	res, err := crypto.Encrypt(data, session.pubKey)
 	if err != nil {
 		return nil, fmt.Errorf("unable to encrypt message: %v", err)
 	}
@@ -204,6 +204,6 @@ func (session *PeerSession) sign(msg message.Message) {
 	msg.GetBaseMessage().Sig = sig
 }
 
-func (session *PeerSession) verifySign(msg message.Message) (bool, error) {
+func (session *PeerSession) verifySign(msg message.Message) bool {
 	return session.pubKey.VerifySign(GetShortHashSha(msg), msg.GetBaseMessage().Sig)
 }
