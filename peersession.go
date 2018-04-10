@@ -1,12 +1,10 @@
 package bootstrap
 
 import (
-	"bytes"
 	"encoding/hex"
 	"fmt"
 	"net"
 
-	"github.com/ethereum/go-ethereum/crypto/secp256k1"
 	"github.com/golemfactory/bootstrap_go/crypto"
 	"github.com/golemfactory/bootstrap_go/message"
 	"github.com/golemfactory/bootstrap_go/python"
@@ -104,8 +102,8 @@ func (session *PeerSession) performHandshake() error {
 		return fmt.Errorf("incorrect RandVal value")
 	}
 
-	signed, err := session.verifySign(randValMsg)
-	if !signed || err != nil {
+	signed := session.verifySign(randValMsg)
+	if !signed {
 		if err := session.sendDisconnect(message.DISCONNECT_UNVERIFIED); err != nil {
 			return err
 		}
@@ -179,7 +177,7 @@ func (session *PeerSession) sendMessage(msg message.Message) error {
 }
 
 func (session *PeerSession) decrypt(data []byte) ([]byte, error) {
-	res, err := crypto.DecryptPython(session.service.privKey, data)
+	res, err := session.service.privKey.Decrypt(data)
 	if err != nil {
 		return nil, fmt.Errorf("unable to decrypt message: %v", err)
 	}
@@ -187,7 +185,7 @@ func (session *PeerSession) decrypt(data []byte) ([]byte, error) {
 }
 
 func (session *PeerSession) encrypt(data []byte) ([]byte, error) {
-	res, err := crypto.EncryptPython(session.service.privKey, data, session.pubKey)
+	res, err := crypto.Encrypt(data, session.pubKey)
 	if err != nil {
 		return nil, fmt.Errorf("unable to encrypt message: %v", err)
 	}
@@ -202,17 +200,10 @@ func GetShortHashSha(msg message.Message) []byte {
 }
 
 func (session *PeerSession) sign(msg message.Message) {
-	sig, _ := secp256k1.Sign(GetShortHashSha(msg), session.service.privKey.Key)
+	sig, _ := session.service.privKey.Sign(GetShortHashSha(msg))
 	msg.GetBaseMessage().Sig = sig
 }
 
-func (session *PeerSession) verifySign(msg message.Message) (bool, error) {
-	keyBytes := []byte{0x04}
-	keyBytes = append(keyBytes, session.pubKey.X...)
-	keyBytes = append(keyBytes, session.pubKey.Y...)
-	recoveredKey, err := secp256k1.RecoverPubkey(GetShortHashSha(msg), msg.GetBaseMessage().Sig)
-	if err != nil {
-		return false, fmt.Errorf("unable to recover public key: %v", err)
-	}
-	return bytes.Equal(recoveredKey, keyBytes), nil
+func (session *PeerSession) verifySign(msg message.Message) bool {
+	return session.pubKey.VerifySign(GetShortHashSha(msg), msg.GetBaseMessage().Sig)
 }

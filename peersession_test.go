@@ -1,12 +1,10 @@
 package bootstrap
 
 import (
-	"math/rand"
 	"net"
 	"testing"
 	"time"
 
-	"github.com/ethereum/go-ethereum/crypto/secp256k1"
 	"github.com/golemfactory/bootstrap_go/crypto"
 	"github.com/golemfactory/bootstrap_go/message"
 	"github.com/golemfactory/bootstrap_go/peerkeeper"
@@ -94,12 +92,11 @@ func testPeerSessionImpl(t *testing.T, handleCh chan error) {
 		RAND_VAL  = 0.1337
 		CLIENT_ID = "client-id"
 	)
-	rand.Seed(42)
 	privKey, err := crypto.GeneratePrivateKey()
 	if err != nil {
 		t.Fatal("Error while generating private key", err)
 	}
-	pubKeyHex := crypto.GetPubKeyHex(privKey)
+	pubKeyHex := privKey.GetPubKeyHex()
 
 	pk := &TestPeerKeeper{}
 	service := getService(t, pk, 0)
@@ -110,14 +107,14 @@ func testPeerSessionImpl(t *testing.T, handleCh chan error) {
 	}()
 
 	signFunc := func(msg message.Message) {
-		sig, _ := secp256k1.Sign(GetShortHashSha(msg), privKey.Key)
+		sig, _ := privKey.Sign(GetShortHashSha(msg))
 		msg.GetBaseMessage().Sig = sig
 	}
 	encryptFunc := func(data []byte) ([]byte, error) {
-		return crypto.EncryptPython(privKey, data, &service.privKey.PublicKey)
+		return crypto.Encrypt(data, service.privKey.GetPublicKey())
 	}
 	decryptFunc := func(data []byte) ([]byte, error) {
-		return crypto.DecryptPython(privKey, data)
+		return privKey.Decrypt(data)
 	}
 
 	msg, err := message.Receive(conn, nil)
@@ -201,12 +198,11 @@ func TestPeerSession(t *testing.T) {
 }
 
 func TestDisconnectKeyDifficulty(t *testing.T) {
-	rand.Seed(42)
 	privKey, err := crypto.GeneratePrivateKey()
 	if err != nil {
 		t.Fatal("Error while generating private key", err)
 	}
-	pubKeyHex := crypto.GetPubKeyHex(privKey)
+	pubKeyHex := privKey.GetPubKeyHex()
 
 	pk := &TestPeerKeeper{}
 	service := getService(t, pk, 100)
@@ -217,7 +213,7 @@ func TestDisconnectKeyDifficulty(t *testing.T) {
 	}()
 
 	signFunc := func(msg message.Message) {
-		sig, _ := secp256k1.Sign(GetShortHashSha(msg), privKey.Key)
+		sig, _ := privKey.Sign(GetShortHashSha(msg))
 		msg.GetBaseMessage().Sig = sig
 	}
 

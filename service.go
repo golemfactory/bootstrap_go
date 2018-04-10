@@ -1,7 +1,6 @@
 package bootstrap
 
 import (
-	"encoding/hex"
 	"fmt"
 	"math/rand"
 	"net"
@@ -35,7 +34,7 @@ type Service struct {
 }
 
 func NewService(config *Config, privKey crypto.PrivateKey, pk peerkeeper.PeerKeeper) *Service {
-	pubKeyHex := hex.EncodeToString(privKey.PublicKey.X) + hex.EncodeToString(privKey.PublicKey.Y)
+	pubKeyHex := privKey.GetPubKeyHex()
 	return &Service{
 		config:     config,
 		privKey:    privKey,
