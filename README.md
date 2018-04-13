@@ -12,9 +12,7 @@ Lightweight bootstrap nodes for Golem network. Basic implementation in Go.
 ```
 go get github.com/golemfactory/bootstrap_go
 cd ~/go/src/github.com/golemfactory/bootstrap_go/
-# get dependencies
-go get -v ./...
-# and test dependencies
+# get dependencies and test dependencies
 go get -v -t ./...
 ```
 
