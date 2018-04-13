@@ -9,6 +9,9 @@ jobs:
     steps:
       - checkout
 
+      - run: go get golang.org/x/tools/cmd/goimports
+      - run: if [[ $(goimports -l . | wc -c) -ne 0 ]]; then echo "Files are not formatted, run goimports"; exit 1; fi
+
       - run: go get -v -t ./...
       - run: go test -v -race ./...
       - run: go vet -v ./...

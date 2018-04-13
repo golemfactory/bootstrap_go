@@ -206,18 +206,18 @@ const (
 
 type Hello struct {
 	BaseMessage
-	RandVal              float64      `msg_slot:"rand_val"`
-	ProtoId              string       `msg_slot:"proto_id"`
-	NodeName             string       `msg_slot:"node_name"`
+	RandVal              float64                     `msg_slot:"rand_val"`
+	ProtoId              string                      `msg_slot:"proto_id"`
+	NodeName             string                      `msg_slot:"node_name"`
 	NodeInfo             map[interface{}]interface{} `msg_slot:"node_info"`
-	Port                 uint64       `msg_slot:"port"`
-	ClientVer            string       `msg_slot:"client_ver"`
-	ClientKeyId          string       `msg_slot:"client_key_id"`
-	SolveChallange       bool         `msg_slot:"solve_challenge"`
-	Challange            interface{}  `msg_slot:"challenge"`
-	Difficulty           uint64       `msg_slot:"difficulty"`
-	Metadata             interface{}  `msg_slot:"metadata"`
-	GolemMessagesVersion string       `msg_slot:"_version"`
+	Port                 uint64                      `msg_slot:"port"`
+	ClientVer            string                      `msg_slot:"client_ver"`
+	ClientKeyId          string                      `msg_slot:"client_key_id"`
+	SolveChallange       bool                        `msg_slot:"solve_challenge"`
+	Challange            interface{}                 `msg_slot:"challenge"`
+	Difficulty           uint64                      `msg_slot:"difficulty"`
+	Metadata             interface{}                 `msg_slot:"metadata"`
+	GolemMessagesVersion string                      `msg_slot:"_version"`
 }
 
 func (self *Hello) GetType() uint16 {
