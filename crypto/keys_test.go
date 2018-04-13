@@ -44,30 +44,26 @@ func TestPublicKeyHex(t *testing.T) {
 }
 
 func benchmarkDifficultKeyGeneration(difficulty uint, b *testing.B) {
-    for n := 0; n < b.N; n++ {
-         GenerateDifficultKey(difficulty)
-    }
+	for n := 0; n < b.N; n++ {
+		GenerateDifficultKey(difficulty)
+	}
 }
 
 // $ go test  -bench=. -benchtime=1m ./crypto/
 // goos: darwin
 // goarch: amd64
-// BenchmarkDifficultKeyGeneration14-8   	      50	2720878068 ns/op
-// BenchmarkDifficultKeyGeneration16-8   	      50	7893233868 ns/op
-
+// BenchmarkDifficultKeyGeneration14-8   	     100	 1.696649777 s/op
+// BenchmarkDifficultKeyGeneration16-8   	      20	 5.705030841 s/op
+// BenchmarkDifficultKeyGeneration18-8   	       2	82.445536799 s/op
 
 func BenchmarkDifficultKeyGeneration14(b *testing.B) {
-    benchmarkDifficultKeyGeneration(14, b)
+	benchmarkDifficultKeyGeneration(14, b)
 }
 
 func BenchmarkDifficultKeyGeneration16(b *testing.B) {
-    benchmarkDifficultKeyGeneration(16, b)
+	benchmarkDifficultKeyGeneration(16, b)
 }
 
 func BenchmarkDifficultKeyGeneration18(b *testing.B) {
-    benchmarkDifficultKeyGeneration(18, b)
-}
-
-func BenchmarkDifficultKeyGeneration20(b *testing.B) {
-    benchmarkDifficultKeyGeneration(20, b)
+	benchmarkDifficultKeyGeneration(18, b)
 }
