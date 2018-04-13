@@ -49,6 +49,9 @@ func benchmarkDifficultKeyGeneration(b *testing.B, difficulty uint) {
 	}
 }
 
+
+// $ sysctl -a | grep cpu.brand_string
+// machdep.cpu.brand_string: Intel(R) Core(TM) i7-6700K CPU @ 4.00GHz
 // $ go test  -bench=. -benchtime=1m ./crypto/
 // goos: darwin
 // goarch: amd64
