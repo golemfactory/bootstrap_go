@@ -42,3 +42,21 @@ func TestPublicKeyHex(t *testing.T) {
 	}
 	assert.Equal(t, 128, len(key.Hex()))
 }
+
+func benchmarkDifficultKeyGeneration(b *testing.B, difficulty uint) {
+	for n := 0; n < b.N; n++ {
+		GenerateDifficultKey(difficulty)
+	}
+}
+
+func BenchmarkDifficultKeyGeneration14(b *testing.B) {
+	benchmarkDifficultKeyGeneration(b, 14)
+}
+
+func BenchmarkDifficultKeyGeneration16(b *testing.B) {
+	benchmarkDifficultKeyGeneration(b, 16)
+}
+
+func BenchmarkDifficultKeyGeneration18(b *testing.B) {
+	benchmarkDifficultKeyGeneration(b, 18)
+}

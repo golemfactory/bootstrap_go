@@ -49,6 +49,8 @@ func GeneratePrivateKey() (key PrivateKey, err error) {
 	return
 }
 
+// GenerateDifficultKey generates key with required difficulty.
+// It should take ~1-2s for difficulty 14.
 func GenerateDifficultKey(difficulty uint) (key PrivateKey, err error) {
 	if difficulty > 256 {
 		err = errors.New("difficulty too high")
