@@ -49,16 +49,6 @@ func benchmarkDifficultKeyGeneration(b *testing.B, difficulty uint) {
 	}
 }
 
-
-// $ sysctl -a | grep cpu.brand_string
-// machdep.cpu.brand_string: Intel(R) Core(TM) i7-6700K CPU @ 4.00GHz
-// $ go test  -bench=. -benchtime=1m ./crypto/
-// goos: darwin
-// goarch: amd64
-// BenchmarkDifficultKeyGeneration14-8   	     100	 1.696649777 s/op
-// BenchmarkDifficultKeyGeneration16-8   	      20	 5.705030841 s/op
-// BenchmarkDifficultKeyGeneration18-8   	       2	82.445536799 s/op
-
 func BenchmarkDifficultKeyGeneration14(b *testing.B) {
 	benchmarkDifficultKeyGeneration(b, 14)
 }
