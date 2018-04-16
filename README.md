@@ -9,13 +9,13 @@ Lightweight bootstrap nodes for Golem network. Basic implementation in Go.
 
 ## get code and deps
 
-This will get the sources into default `GOPATH` which is `~/go`.
+This will get the sources into `GOPATH` which is by default `~/go`.
 
 ```
 go get github.com/golemfactory/bootstrap_go
 cd ~/go/src/github.com/golemfactory/bootstrap_go/
 # get dependencies and test dependencies
-go get -v -t ./...
+go get -t ./...
 ```
 
 ## run
