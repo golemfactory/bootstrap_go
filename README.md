@@ -1,9 +1,11 @@
 # bootstrap_go
 Lightweight bootstrap nodes for Golem network. Basic implementation in Go.
 
+[![CircleCI](https://circleci.com/gh/golemfactory/bootstrap_go.svg?style=svg)](https://circleci.com/gh/golemfactory/bootstrap_go)
+
 # installation
 
-## prerequisites 
+## prerequisites
 - install `go` tools https://golang.org/doc/install  
 - create go workspace `mkdir ~/go` https://github.com/golang/go/wiki/SettingGOPATH
 
@@ -20,7 +22,7 @@ go get -t ./...
 
 ## run
 ```
-go run main/main.go 
+go run main/main.go
 ```
 
 ## tests
@@ -34,6 +36,3 @@ go test ./...
 ```
 go test -bench=. -benchtime=20s ./...
 ```
-
-
-[![CircleCI](https://circleci.com/gh/golemfactory/bootstrap_go.svg?style=svg)](https://circleci.com/gh/golemfactory/bootstrap_go)
