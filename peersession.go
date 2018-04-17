@@ -102,7 +102,7 @@ func (session *PeerSession) performHandshake() error {
 		return fmt.Errorf("incorrect RandVal value")
 	}
 
-	signed := session.verifySign(randValMsg)
+	signed := session.verifySign(randValMsg, randValMsg.GetSignature())
 	if !signed {
 		if err := session.sendDisconnect(message.DISCONNECT_UNVERIFIED); err != nil {
 			return err
@@ -199,11 +199,10 @@ func GetShortHashSha(msg message.Message) []byte {
 	return sha.Sum(nil)
 }
 
-func (session *PeerSession) sign(msg message.Message) {
-	sig, _ := session.service.privKey.Sign(GetShortHashSha(msg))
-	msg.GetBaseMessage().Sig = sig
+func (session *PeerSession) sign(msg message.Message) ([]byte, error) {
+	return session.service.privKey.Sign(GetShortHashSha(msg))
 }
 
-func (session *PeerSession) verifySign(msg message.Message) bool {
-	return session.pubKey.VerifySign(GetShortHashSha(msg), msg.GetBaseMessage().Sig)
+func (session *PeerSession) verifySign(msg message.Message, sig []byte) bool {
+	return session.pubKey.VerifySign(GetShortHashSha(msg), sig)
 }

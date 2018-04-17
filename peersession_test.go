@@ -107,9 +107,8 @@ func testPeerSessionImpl(t *testing.T, handleCh chan error) {
 		handleCh <- ps.handle()
 	}()
 
-	signFunc := func(msg message.Message) {
-		sig, _ := privKey.Sign(GetShortHashSha(msg))
-		msg.GetBaseMessage().Sig = sig
+	signFunc := func(msg message.Message) ([]byte, error) {
+		return privKey.Sign(GetShortHashSha(msg))
 	}
 	encryptFunc := func(data []byte) ([]byte, error) {
 		return crypto.Encrypt(data, service.privKey.GetPublicKey())
@@ -193,9 +192,8 @@ func TestDisconnectKeyDifficulty(t *testing.T) {
 		ps.handle()
 	}()
 
-	signFunc := func(msg message.Message) {
-		sig, _ := privKey.Sign(GetShortHashSha(msg))
-		msg.GetBaseMessage().Sig = sig
+	signFunc := func(msg message.Message) ([]byte, error) {
+		return privKey.Sign(GetShortHashSha(msg))
 	}
 
 	msg, err := message.Receive(conn, nil)

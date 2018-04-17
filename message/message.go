@@ -12,6 +12,7 @@ import (
 
 type Message interface {
 	GetBaseMessage() *BaseMessage
+	GetSignature() []byte
 	GetShortHash(payload MessagePayload) []byte
 	GetType() uint16
 	ShouldEncrypt() bool
@@ -25,6 +26,10 @@ type BaseMessage struct {
 
 func (self *BaseMessage) GetBaseMessage() *BaseMessage {
 	return self
+}
+
+func (self *BaseMessage) GetSignature() []byte {
+	return self.Sig
 }
 
 func (self *BaseMessage) serializationExtraData() []byte {
@@ -168,7 +173,7 @@ func serializePayload(payload MessagePayload) ([]byte, error) {
 }
 
 type EncryptFunc = func([]byte) ([]byte, error)
-type SignFunc = func(Message)
+type SignFunc = func(Message) ([]byte, error)
 
 func Serialize(msg Message, encrypt EncryptFunc, sign SignFunc) ([]byte, error) {
 	header := &msg.GetBaseMessage().Header
@@ -177,18 +182,20 @@ func Serialize(msg Message, encrypt EncryptFunc, sign SignFunc) ([]byte, error) 
 	header.Encrypted = msg.ShouldEncrypt()
 	headerBytes := header.serialize()
 	payloadBytes, err := serializePayload(GetPayload(msg))
+	if err != nil {
+		return nil, err
+	}
 	if msg.ShouldEncrypt() {
 		payloadBytes, err = encrypt(payloadBytes)
 		if err != nil {
 			return nil, err
 		}
 	}
-	sign(msg)
-	sigBytes := msg.GetBaseMessage().Sig
-
+	sigBytes, err := sign(msg)
 	if err != nil {
 		return nil, err
 	}
+
 	res := make([]byte, 0)
 	res = append(res, headerBytes...)
 	res = append(res, sigBytes...)

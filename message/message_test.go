@@ -25,9 +25,9 @@ func testImpl(t *testing.T, msg Message) Message {
 		sig[i] = byte(i)
 	}
 	signCalled := false
-	signFunc := func(msg Message) {
+	signFunc := func(msg Message) ([]byte, error) {
 		signCalled = true
-		msg.GetBaseMessage().Sig = sig
+		return sig, nil
 	}
 
 	serialized, err := Serialize(msg, encryptFunc, signFunc)
@@ -42,7 +42,7 @@ func testImpl(t *testing.T, msg Message) Message {
 	baseMsg := deserialized.GetBaseMessage()
 	assert.Equal(t, msg.GetType(), baseMsg.Header.Type)
 	assert.Equal(t, msg.ShouldEncrypt(), baseMsg.Header.Encrypted)
-	assert.Equal(t, sig, baseMsg.Sig)
+	assert.Equal(t, sig, deserialized.GetSignature())
 	return deserialized
 }
 
