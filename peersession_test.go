@@ -1,6 +1,7 @@
 package bootstrap
 
 import (
+	"encoding/hex"
 	"net"
 	"testing"
 	"time"
@@ -107,8 +108,16 @@ func testPeerSessionImpl(t *testing.T, handleCh chan error) {
 		handleCh <- ps.handle()
 	}()
 
-	signFunc := func(msg message.Message) ([]byte, error) {
-		return privKey.Sign(GetShortHashSha(msg))
+	var otherPubKey crypto.PublicKey
+	inited := false
+	signFunc := func(shortHash []byte) ([]byte, error) {
+		return privKey.Sign(GetShortHashSha(shortHash))
+	}
+	verifySignFunc := func(shortHash []byte, sig []byte) bool {
+		if !inited {
+			return true
+		}
+		return otherPubKey.VerifySign(GetShortHashSha(shortHash), sig)
 	}
 	encryptFunc := func(data []byte) ([]byte, error) {
 		return crypto.Encrypt(data, service.privKey.GetPublicKey())
@@ -117,10 +126,17 @@ func testPeerSessionImpl(t *testing.T, handleCh chan error) {
 		return privKey.Decrypt(data)
 	}
 
-	msg, err := message.Receive(conn, nil)
+	msg, err := message.Receive(conn, nil, verifySignFunc)
 	require.NoError(t, err)
 	serverHello := msg.(*message.Hello)
 	assert.Equal(t, TEST_NAME, serverHello.NodeName)
+
+	nodeInfo := python.DictToNode(serverHello.NodeInfo)
+	pubKeyBytes, err := hex.DecodeString(nodeInfo.Key)
+	require.NoError(t, err)
+	otherPubKey, err = crypto.PublicKeyFromBytes(append([]byte{0x04}, pubKeyBytes...))
+	require.NoError(t, err)
+	inited = true
 
 	node := python.Node{
 		Key: pubKeyHex,
@@ -140,17 +156,18 @@ func testPeerSessionImpl(t *testing.T, handleCh chan error) {
 	err = message.Send(conn, randVal, encryptFunc, signFunc)
 	require.NoError(t, err)
 
-	msg, err = message.Receive(conn, decryptFunc)
+	msg, err = message.Receive(conn, decryptFunc, verifySignFunc)
 	require.NoError(t, err)
-	serverRandVal := msg.(*message.RandVal)
+	serverRandVal, ok := msg.(*message.RandVal)
+	require.True(t, ok)
 	assert.Equal(t, RAND_VAL, serverRandVal.RandVal)
 
-	msg, err = message.Receive(conn, decryptFunc)
+	msg, err = message.Receive(conn, decryptFunc, verifySignFunc)
 	require.NoError(t, err)
 	serverPeers := msg.(*message.Peers)
 	assert.Equal(t, 0, len(serverPeers.Peers))
 
-	msg, err = message.Receive(conn, decryptFunc)
+	msg, err = message.Receive(conn, decryptFunc, verifySignFunc)
 	require.NoError(t, err)
 	disconnect := msg.(*message.Disconnect)
 	assert.Equal(t, message.DISCONNECT_BOOTSTRAP, disconnect.Reason)
@@ -192,11 +209,14 @@ func TestDisconnectKeyDifficulty(t *testing.T) {
 		ps.handle()
 	}()
 
-	signFunc := func(msg message.Message) ([]byte, error) {
-		return privKey.Sign(GetShortHashSha(msg))
+	signFunc := func(shortHash []byte) ([]byte, error) {
+		return privKey.Sign(GetShortHashSha(shortHash))
+	}
+	verifySignFunc := func(shortHash []byte, sig []byte) bool {
+		return true
 	}
 
-	msg, err := message.Receive(conn, nil)
+	msg, err := message.Receive(conn, nil, verifySignFunc)
 	require.NoError(t, err)
 
 	node := python.Node{
@@ -209,7 +229,7 @@ func TestDisconnectKeyDifficulty(t *testing.T) {
 	err = message.Send(conn, hello, nil, signFunc)
 	require.NoError(t, err)
 
-	msg, err = message.Receive(conn, nil)
+	msg, err = message.Receive(conn, nil, verifySignFunc)
 	require.NoError(t, err)
 
 	require.Equal(t, message.MSG_DISCONNECT_TYPE, int(msg.GetType()))

@@ -11,34 +11,45 @@ import (
 )
 
 type Message interface {
-	GetBaseMessage() *BaseMessage
 	GetSignature() []byte
-	GetShortHash(payload MessagePayload) []byte
 	GetType() uint16
-	ShouldEncrypt() bool
+
+	shouldEncrypt() bool
+	getTimestamp() uint64
+	setTimestamp(ts uint64)
+	setSignature(sig []byte)
 	serializationExtraData() []byte
 }
 
 type BaseMessage struct {
-	Header Header
-	Sig    []byte
-}
-
-func (self *BaseMessage) GetBaseMessage() *BaseMessage {
-	return self
+	Timestamp uint64
+	Sig       []byte
 }
 
 func (self *BaseMessage) GetSignature() []byte {
 	return self.Sig
 }
 
+func (self *BaseMessage) getTimestamp() uint64 {
+	return self.Timestamp
+}
+
+func (self *BaseMessage) setTimestamp(ts uint64) {
+	self.Timestamp = ts
+}
+
+func (self *BaseMessage) setSignature(sig []byte) {
+	self.Sig = sig
+}
+
 func (self *BaseMessage) serializationExtraData() []byte {
 	return []byte{}
 }
 
-func (self *BaseMessage) GetShortHash(payload MessagePayload) []byte {
+func getShortHash(msg Message) []byte {
+	payload := GetPayload(msg)
 	data := make([]byte, 0)
-	headerBytes, _ := cbor.Serialize([]interface{}{self.Header.Type, self.Header.Timestamp})
+	headerBytes, _ := cbor.Serialize([]interface{}{msg.GetType(), msg.getTimestamp()})
 	payloadBytes, _ := serializePayload(payload)
 	data = append(data, headerBytes...)
 	data = append(data, payloadBytes...)
@@ -95,6 +106,7 @@ func deserializeHeader(header []byte) Header {
 }
 
 type DecryptFunc = func([]byte) ([]byte, error)
+type VerifySignFunc = func([]byte, []byte) bool
 
 func Deserialize(b []byte, decrypt DecryptFunc) (Message, error) {
 	payloadIdx := HEADER_LEN + SIG_LEN
@@ -116,8 +128,8 @@ func Deserialize(b []byte, decrypt DecryptFunc) (Message, error) {
 		return nil, fmt.Errorf("unsupported msg type %d", header.Type)
 	}
 
-	msg.GetBaseMessage().Header = header
-	msg.GetBaseMessage().Sig = sigB
+	msg.setSignature(sigB)
+	msg.setTimestamp(header.Timestamp)
 
 	var err error
 	if header.Encrypted {
@@ -173,25 +185,26 @@ func serializePayload(payload MessagePayload) ([]byte, error) {
 }
 
 type EncryptFunc = func([]byte) ([]byte, error)
-type SignFunc = func(Message) ([]byte, error)
+type SignFunc = func([]byte) ([]byte, error)
 
 func Serialize(msg Message, encrypt EncryptFunc, sign SignFunc) ([]byte, error) {
-	header := &msg.GetBaseMessage().Header
+	header := Header{}
 	header.Type = msg.GetType()
 	header.Timestamp = uint64(time.Now().Unix())
-	header.Encrypted = msg.ShouldEncrypt()
+	header.Encrypted = msg.shouldEncrypt()
 	headerBytes := header.serialize()
 	payloadBytes, err := serializePayload(GetPayload(msg))
 	if err != nil {
 		return nil, err
 	}
-	if msg.ShouldEncrypt() {
+	if msg.shouldEncrypt() {
 		payloadBytes, err = encrypt(payloadBytes)
 		if err != nil {
 			return nil, err
 		}
 	}
-	sigBytes, err := sign(msg)
+	msg.setTimestamp(header.Timestamp)
+	sigBytes, err := sign(getShortHash(msg))
 	if err != nil {
 		return nil, err
 	}
@@ -231,7 +244,7 @@ func (self *Hello) GetType() uint16 {
 	return MSG_HELLO_TYPE
 }
 
-func (self *Hello) ShouldEncrypt() bool {
+func (self *Hello) shouldEncrypt() bool {
 	return false
 }
 
@@ -253,7 +266,7 @@ func (self *RandVal) GetType() uint16 {
 	return MSG_RAND_VAL_TYPE
 }
 
-func (self *RandVal) ShouldEncrypt() bool {
+func (self *RandVal) shouldEncrypt() bool {
 	return true
 }
 
@@ -275,7 +288,7 @@ func (self *Disconnect) GetType() uint16 {
 	return MSG_DISCONNECT_TYPE
 }
 
-func (self *Disconnect) ShouldEncrypt() bool {
+func (self *Disconnect) shouldEncrypt() bool {
 	return false
 }
 
@@ -288,6 +301,6 @@ func (self *Peers) GetType() uint16 {
 	return MSG_PEERS_TYPE
 }
 
-func (self *Peers) ShouldEncrypt() bool {
+func (self *Peers) shouldEncrypt() bool {
 	return true
 }

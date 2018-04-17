@@ -25,33 +25,32 @@ func testImpl(t *testing.T, msg Message) Message {
 		sig[i] = byte(i)
 	}
 	signCalled := false
-	signFunc := func(msg Message) ([]byte, error) {
+	signFunc := func(data []byte) ([]byte, error) {
 		signCalled = true
 		return sig, nil
 	}
 
 	serialized, err := Serialize(msg, encryptFunc, signFunc)
 	require.NoError(t, err)
-	assert.Equal(t, msg.ShouldEncrypt(), encryptCalled)
+	assert.Equal(t, msg.shouldEncrypt(), encryptCalled)
 	assert.True(t, signCalled)
 
 	deserialized, err := Deserialize(serialized, decryptFunc)
 	require.NoError(t, err)
-	assert.Equal(t, msg.ShouldEncrypt(), decryptCalled)
+	assert.Equal(t, msg.shouldEncrypt(), decryptCalled)
 
-	baseMsg := deserialized.GetBaseMessage()
-	assert.Equal(t, msg.GetType(), baseMsg.Header.Type)
-	assert.Equal(t, msg.ShouldEncrypt(), baseMsg.Header.Encrypted)
+	assert.Equal(t, msg.GetType(), deserialized.GetType())
 	assert.Equal(t, sig, deserialized.GetSignature())
+	assert.NotZero(t, deserialized.getTimestamp())
 	return deserialized
 }
 
-func TestSerializeationEncrypted(t *testing.T) {
+func TestSerializationEncrypted(t *testing.T) {
 	const RAND_VAL = 0.1337
 	msg := &RandVal{
 		RandVal: RAND_VAL,
 	}
-	require.True(t, msg.ShouldEncrypt())
+	require.True(t, msg.shouldEncrypt())
 	deserialized := testImpl(t, msg)
 
 	castedMsg, ok := deserialized.(*RandVal)
@@ -59,12 +58,12 @@ func TestSerializeationEncrypted(t *testing.T) {
 	assert.Equal(t, RAND_VAL, castedMsg.RandVal)
 }
 
-func TestSerializeationNotEncrypted(t *testing.T) {
+func TestSerializationNotEncrypted(t *testing.T) {
 	const REASON = "Unittest"
 	msg := &Disconnect{
 		Reason: REASON,
 	}
-	require.False(t, msg.ShouldEncrypt())
+	require.False(t, msg.shouldEncrypt())
 	deserialized := testImpl(t, msg)
 
 	castedMsg, ok := deserialized.(*Disconnect)
