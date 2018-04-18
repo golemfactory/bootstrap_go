@@ -99,23 +99,14 @@ func Deserialize(b []byte, decrypt DecryptFunc, verifySign VerifySignFunc) (Mess
 	payloadB := b[payloadIdx:]
 
 	header := deserializeHeader(headerB)
-	var msg Message
-	if header.Type == MSG_HELLO_TYPE {
-		msg = &Hello{}
-	} else if header.Type == MSG_RAND_VAL_TYPE {
-		msg = &RandVal{}
-	} else if header.Type == MSG_DISCONNECT_TYPE {
-		msg = &Disconnect{}
-	} else if header.Type == MSG_PEERS_TYPE {
-		msg = &Peers{}
-	} else {
-		return nil, fmt.Errorf("unsupported msg type %d", header.Type)
+	msg, err := newByType(header.Type)
+	if err != nil {
+		return nil, err
 	}
 
 	msg.setSignature(sigB)
 	msg.setTimestamp(header.Timestamp)
 
-	var err error
 	if header.Encrypted {
 		payloadB, err = decrypt(payloadB)
 		if err != nil {

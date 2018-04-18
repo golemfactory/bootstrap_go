@@ -1,5 +1,7 @@
 package message
 
+import "fmt"
+
 const (
 	MSG_HELLO_TYPE      = 0
 	MSG_RAND_VAL_TYPE   = 1
@@ -86,4 +88,29 @@ func (self *Peers) GetType() uint16 {
 
 func (self *Peers) shouldEncrypt() bool {
 	return true
+}
+
+var registeredTypes = make(map[uint16]func() Message)
+
+func newByType(typ uint16) (Message, error) {
+	factory, ok := registeredTypes[typ]
+	if !ok {
+		return nil, fmt.Errorf("unsupported msg type %d", typ)
+	}
+	return factory(), nil
+}
+
+func init() {
+	factories := []func() Message{
+		func() Message { return &Hello{} },
+		func() Message { return &RandVal{} },
+		func() Message { return &Disconnect{} },
+		func() Message { return &Peers{} },
+	}
+	for _, factory := range factories {
+		registeredTypes[factory().GetType()] = factory
+	}
+	if len(factories) != len(registeredTypes) {
+		panic("Duplicated message types")
+	}
 }
