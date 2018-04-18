@@ -30,17 +30,24 @@ func testImpl(t *testing.T, msg Message) Message {
 		return sig, nil
 	}
 
+	verifySignCalled := false
+	verifySignFunc := func(data []byte, sig []byte) bool {
+		verifySignCalled = true
+		return true
+	}
+
 	serialized, err := Serialize(msg, encryptFunc, signFunc)
 	require.NoError(t, err)
 	assert.Equal(t, msg.shouldEncrypt(), encryptCalled)
 	assert.True(t, signCalled)
 
-	deserialized, err := Deserialize(serialized, decryptFunc)
+	deserialized, err := Deserialize(serialized, decryptFunc, verifySignFunc)
 	require.NoError(t, err)
 	assert.Equal(t, msg.shouldEncrypt(), decryptCalled)
+	assert.True(t, verifySignCalled)
 
 	assert.Equal(t, msg.GetType(), deserialized.GetType())
-	assert.Equal(t, sig, deserialized.GetSignature())
+	assert.Equal(t, sig, deserialized.getSignature())
 	assert.NotZero(t, deserialized.getTimestamp())
 	return deserialized
 }

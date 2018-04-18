@@ -43,12 +43,5 @@ func Receive(conn net.Conn, decrypt DecryptFunc, verifySign VerifySignFunc) (Mes
 	if uint32(lenRead) != msgLen {
 		return nil, fmt.Errorf("read %d bytes instead of %d", lenRead, msgLen)
 	}
-	msg, err := Deserialize(rawMsg, decrypt)
-	if err != nil {
-		return nil, err
-	}
-	if !verifySign(getShortHash(msg), msg.GetSignature()) {
-		return nil, fmt.Errorf("incorrect signature")
-	}
-	return msg, nil
+	return Deserialize(rawMsg, decrypt, verifySign)
 }
