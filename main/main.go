@@ -4,9 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"log"
-	"math/rand"
 	"net"
-	"time"
 
 	"github.com/golemfactory/bootstrap_go"
 	"github.com/golemfactory/bootstrap_go/crypto"
@@ -67,7 +65,6 @@ func main() {
 		return
 	}
 
-	rand.Seed(time.Now().UTC().UnixNano())
 	privKey, err := crypto.GenerateDifficultKey(KEY_DIFF)
 	if err != nil {
 		log.Println("Error while generating private key", err)
