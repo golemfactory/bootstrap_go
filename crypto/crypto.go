@@ -3,7 +3,7 @@ package crypto
 import (
 	"crypto/rand"
 
-	"github.com/ethereum/go-ethereum/crypto/ecies"
+	"github.com/golemfactory/bootstrap_go/crypto/ecies"
 )
 
 func Encrypt(data []byte, pubKey PublicKey) ([]byte, error) {
@@ -11,5 +11,5 @@ func Encrypt(data []byte, pubKey PublicKey) ([]byte, error) {
 }
 
 func (self *PrivateKey) Decrypt(raw []byte) ([]byte, error) {
-	return self.key.Decrypt(raw, nil, nil)
+	return ecies.Decrypt(self.key, raw, nil, nil)
 }
