@@ -17,9 +17,9 @@ const (
 	PORT                   = 40102
 	PEER_NUM               = 100
 	NAME                   = "Go Bootstrap"
-	PROTO_ID               = "26"
-	GOLEM_MESSAGES_VERSION = "1.17.2"
-	GOLEM_VERSION          = "0.15.0"
+	PROTO_ID               = "27"
+	GOLEM_MESSAGES_VERSION = "2.9.0"
+	GOLEM_VERSION          = "0.16.0"
 	KEY_DIFF               = 14
 )
 

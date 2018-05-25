@@ -42,11 +42,11 @@ func (session *PeerSession) performHandshake() error {
 	myHello := service.genHello()
 	err := session.sendMessage(myHello)
 	if err != nil {
-		return err
+		return fmt.Errorf("send hello error: %v", err)
 	}
 	msg, err := session.receiveMessage()
 	if err != nil {
-		return err
+		return fmt.Errorf("receive hello error: %v", err)
 	}
 	if disconnectMsg, ok := msg.(*message.Disconnect); ok {
 		return fmt.Errorf("peer disconnected, reason: %v", disconnectMsg.Reason)
@@ -85,7 +85,7 @@ func (session *PeerSession) performHandshake() error {
 
 	msg, err = session.receiveMessage()
 	if err != nil {
-		return err
+		return fmt.Errorf("receive randval error: %v", err)
 	}
 	if disconnectMsg, ok := msg.(*message.Disconnect); ok {
 		return fmt.Errorf("peer disconnected, reason: %v", disconnectMsg.Reason)
