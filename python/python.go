@@ -1,6 +1,9 @@
 package python
 
-import "reflect"
+import (
+	"fmt"
+	"reflect"
+)
 
 type serializableToDict interface {
 	ToDict() map[interface{}]interface{}
@@ -33,14 +36,14 @@ type Node struct {
 	PrvAddr      string        `pyobj:"prv_addr"`
 	PubAddr      string        `pyobj:"pub_addr"`
 	PrvAddresses []interface{} `pyobj:"prv_addresses"`
-	NatType      string        `pyobj:"nat_type"`
+	NatType      []interface{} `pyobj:"nat_type"`
 }
 
 func (self *Node) ToDict() map[interface{}]interface{} {
 	return toDict(self)
 }
 
-func DictToNode(m map[interface{}]interface{}) *Node {
+func DictToNode(m map[interface{}]interface{}) (*Node, error) {
 	res := &Node{}
 	elem := reflect.ValueOf(res).Elem()
 	for i := 0; i < elem.NumField(); i++ {
@@ -49,11 +52,14 @@ func DictToNode(m map[interface{}]interface{}) *Node {
 		tag := field.Tag.Get("pyobj")
 		if tag != "" {
 			if vv, ok := m[tag]; ok && vv != nil {
+				if !reflect.TypeOf(vv).AssignableTo(val.Type()) {
+					return nil, fmt.Errorf("can't assign %v to %v for property %v", reflect.TypeOf(vv), val.Type(), tag)
+				}
 				val.Set(reflect.ValueOf(vv))
 			}
 		}
 	}
-	return res
+	return res, nil
 }
 
 type Peer struct {

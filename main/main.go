@@ -6,7 +6,7 @@ import (
 	"log"
 	"net"
 
-	"github.com/golemfactory/bootstrap_go"
+	bootstrap "github.com/golemfactory/bootstrap_go"
 	"github.com/golemfactory/bootstrap_go/crypto"
 	"github.com/golemfactory/bootstrap_go/peerkeeper"
 
@@ -59,7 +59,7 @@ func main() {
 		}
 	}
 
-	nat, host, err := stun.NewClient().Discover()
+	_, host, err := stun.NewClient().Discover()
 	if err != nil {
 		fmt.Println("Error discovering STUN details:", err)
 		return
@@ -79,7 +79,7 @@ func main() {
 		PrvAddr:              prvAddresses[0].(string),
 		PubAddr:              host.IP(),
 		PrvAddresses:         prvAddresses,
-		NatType:              nat.String(),
+		NatType:              make([]interface{}, 0),
 		PeerNum:              PEER_NUM,
 		KeyDifficulty:        KEY_DIFF,
 		ProtocolId:           protocolId,
