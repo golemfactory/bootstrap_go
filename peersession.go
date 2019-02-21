@@ -64,7 +64,10 @@ func (session *PeerSession) performHandshake() error {
 		return fmt.Errorf("not matching protocol ID, remote %v, local %v", helloMsg.ProtoId, session.service.config.ProtocolId)
 	}
 
-	nodeInfo := python.DictToNode(helloMsg.NodeInfo)
+	nodeInfo, err := python.DictToNode(helloMsg.NodeInfo)
+	if err != nil {
+		return fmt.Errorf("Malformed node info: %v", err)
+	}
 
 	pubKeyBytes, err := hex.DecodeString(nodeInfo.Key)
 	if err != nil {

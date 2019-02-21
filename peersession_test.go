@@ -81,7 +81,7 @@ func getService(t *testing.T, pk peerkeeper.PeerKeeper, keyDifficulty int) *Serv
 		PrvAddr:       "prvAddr",
 		PubAddr:       "pubAddr",
 		PrvAddresses:  nil,
-		NatType:       "nat type",
+		NatType:       make([]interface{}, 0),
 		PeerNum:       100,
 		KeyDifficulty: keyDifficulty,
 		ProtocolId:    TEST_PROTO_ID,
@@ -131,7 +131,8 @@ func testPeerSessionImpl(t *testing.T, handleCh chan error) {
 	serverHello := msg.(*message.Hello)
 	assert.Equal(t, TEST_NAME, serverHello.NodeName)
 
-	nodeInfo := python.DictToNode(serverHello.NodeInfo)
+	nodeInfo, err := python.DictToNode(serverHello.NodeInfo)
+	require.NoError(t, err)
 	pubKeyBytes, err := hex.DecodeString(nodeInfo.Key)
 	require.NoError(t, err)
 	otherPubKey, err = crypto.PublicKeyFromBytes(append([]byte{0x04}, pubKeyBytes...))

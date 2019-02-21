@@ -18,7 +18,7 @@ type Config struct {
 	PrvAddr              string
 	PubAddr              string
 	PrvAddresses         []interface{}
-	NatType              string
+	NatType              []interface{}
 	PeerNum              int
 	KeyDifficulty        int
 	ProtocolId           string
@@ -73,10 +73,10 @@ func (s *Service) genHello() *message.Hello {
 	node := python.Node{
 		NodeName:     s.config.Name,
 		Key:          s.pubKeyHex,
-		PrvPort:      0,
-		PubPort:      0,
+		PrvPort:      s.config.Port,
+		PubPort:      s.config.Port,
 		P2pPrvPort:   s.config.Port,
-		P2pPubPort:   0,
+		P2pPubPort:   s.config.Port,
 		PrvAddr:      s.config.PrvAddr,
 		PubAddr:      s.config.PubAddr,
 		PrvAddresses: s.config.PrvAddresses,
