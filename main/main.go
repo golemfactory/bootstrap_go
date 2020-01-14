@@ -81,7 +81,6 @@ func main() {
 		PrvAddresses:         prvAddresses,
 		NatType:              make([]interface{}, 0),
 		PeerNum:              PEER_NUM,
-		KeyDifficulty:        KEY_DIFF,
 		ProtocolId:           protocolId,
 		GolemMessagesVersion: golemMessagesVersion,
 		GolemVersion:         golemVersion,

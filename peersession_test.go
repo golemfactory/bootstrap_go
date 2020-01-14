@@ -68,23 +68,22 @@ func (pk *TestPeerKeeper) GetPeers(id string) []python.Peer {
 	return nil
 }
 
-func getService(t *testing.T, pk peerkeeper.PeerKeeper, keyDifficulty int) *Service {
+func getService(t *testing.T, pk peerkeeper.PeerKeeper) *Service {
 	privKey, err := crypto.GeneratePrivateKey()
 	if err != nil {
 		t.Fatal("Error while generating private key", err)
 	}
 
 	config := &Config{
-		Name:          TEST_NAME,
-		Id:            "deadbeef",
-		Port:          44444,
-		PrvAddr:       "prvAddr",
-		PubAddr:       "pubAddr",
-		PrvAddresses:  nil,
-		NatType:       make([]interface{}, 0),
-		PeerNum:       100,
-		KeyDifficulty: keyDifficulty,
-		ProtocolId:    TEST_PROTO_ID,
+		Name:         TEST_NAME,
+		Id:           "deadbeef",
+		Port:         44444,
+		PrvAddr:      "prvAddr",
+		PubAddr:      "pubAddr",
+		PrvAddresses: nil,
+		NatType:      make([]interface{}, 0),
+		PeerNum:      100,
+		ProtocolId:   TEST_PROTO_ID,
 	}
 
 	return NewService(config, privKey, pk)
@@ -101,7 +100,7 @@ func testPeerSessionImpl(t *testing.T, handleCh chan error) {
 	pubKeyHex := pubKey.Hex()
 
 	pk := &TestPeerKeeper{}
-	service := getService(t, pk, 0)
+	service := getService(t, pk)
 	conn, psConn := net.Pipe()
 	ps := NewPeerSession(service, &TestConn{Conn: psConn})
 	go func() {
@@ -194,46 +193,4 @@ func TestPeerSession(t *testing.T) {
 	case <-time.After(time.Second):
 		t.Fatal("Test timed out")
 	}
-}
-
-func TestDisconnectKeyDifficulty(t *testing.T) {
-	privKey, err := crypto.GeneratePrivateKey()
-	require.NoError(t, err)
-	pubKey := privKey.GetPublicKey()
-	pubKeyHex := pubKey.Hex()
-
-	pk := &TestPeerKeeper{}
-	service := getService(t, pk, 100)
-	conn, psConn := net.Pipe()
-	ps := NewPeerSession(service, &TestConn{Conn: psConn})
-	go func() {
-		ps.handle()
-	}()
-
-	signFunc := func(shortHash []byte) ([]byte, error) {
-		return privKey.Sign(GetShortHashSha(shortHash))
-	}
-	verifySignFunc := func(shortHash []byte, sig []byte) bool {
-		return true
-	}
-
-	msg, err := message.Receive(conn, nil, verifySignFunc)
-	require.NoError(t, err)
-
-	node := python.Node{
-		Key: pubKeyHex,
-	}
-	hello := &message.Hello{
-		NodeInfo: node.ToDict(),
-		ProtoId:  TEST_PROTO_ID,
-	}
-	err = message.Send(conn, hello, nil, signFunc)
-	require.NoError(t, err)
-
-	msg, err = message.Receive(conn, nil, verifySignFunc)
-	require.NoError(t, err)
-
-	require.Equal(t, message.MSG_DISCONNECT_TYPE, int(msg.GetType()))
-	disconnectMsg := msg.(*message.Disconnect)
-	assert.Equal(t, message.DISCONNECT_KEY_DIFFICULTY, disconnectMsg.Reason)
 }
